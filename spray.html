@@ -1,0 +1,2686 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js - webgl sandbox</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				background:#000;
+				padding:0;
+				margin:0;
+				font-weight: bold;
+				overflow:hidden;
+			}
+
+			#info {
+				position: absolute;
+				top: 0px; width: 100%;
+				color: #ffffff;
+				padding: 5px;
+				font-family:Monospace;
+				font-size:13px;
+				text-align:center;
+				z-index:1000;
+			}
+
+			a {
+				color: #ffffff;
+			}
+
+		</style>
+	</head>
+
+	<body>
+		<div id="home-page" class="home-animation ng-scope" style="background: rgb(0, 24, 34);">
+	
+	<div id="scene-1-background"></div>
+	<div class="container">
+		<div id="wrapper" style="display: none;">
+			<div class="bgImg"></div>
+			<div class="loading-container" style="opacity: 0;">
+			<div id="animation_container" style="visibility: hidden; opacity: 0;">
+				<div class="percentage_count" style="visibility: hidden; opacity: 0;">
+					<div>
+						<div id="count" style="opacity: 0;"></div>
+						<div class="loading" translate=""></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="animation-canvas" style="left: -22%;"></div>
+		<div class="scene first-scene">
+			<div class="table">
+				<div class="table-cell">
+					
+				</div>
+			</div>
+		</div>	
+		<div class="scene second-scene">
+			<div class="table">
+				<div class="table-cell">
+					
+				</div>
+			</div>
+		</div>
+		<div class="scene third-scene">
+			<div class="table">
+				<div class="table-cell">
+					
+					
+				</div>
+			</div>
+		</div>
+		<div class="scene fourth-scene">
+			<div class="table">
+				<div class="table-cell">
+				</div>
+			</div>
+		</div>
+		<div class="scene fifth-scene">
+			<div class="table">
+				
+			</div>
+		</div>
+	</div>
+
+</div>
+		<script
+		  src="https://code.jquery.com/jquery-3.2.1.min.js"
+		  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+		  crossorigin="anonymous"></script>
+
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/ScrollMagic/2.0.5/ScrollMagic.min.js"></script>
+		<script src="../build/three.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.2/TweenMax.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.2/TweenLite.min.js"></script>
+
+		
+		<script src="js/controls/OrbitControls.js"></script>
+		<script type="text/javascript" src="js/loaders/OBJLoader.js"></script>
+		<script type="text/javascript" src="js/loaders/ColladaLoader.js"></script>
+		<script type="text/javascript" src="js/loaders/MTLLoader.js"></script>
+		<script src="js/shaders/BasicShader.js"></script>
+		
+		<script src="js/postprocessing/EffectComposer.js"></script>
+
+		<script src="js/postprocessing/RenderPass.js"></script>
+
+		<script src="js/postprocessing/ClearPass.js"></script>
+
+
+
+		<script>
+
+			var renderer, scene, camera, controls, clock = new THREE.Clock(), fov = 50;
+
+			var headerHeight = 46, 
+				mobileBreakpoint = 800,
+				screenRatio,
+				makeMobile,
+				hidehotSpots = false,
+				containerOffsetPipes,
+				containerOffsetDefault,
+				containerOffsetRIghtSide,
+				offsetStatus = "default",
+				scaleAmount = 180,
+				xPosStart = 0,
+				yPosStart = 3, // these can be pulled into the main group
+				imageX,
+				hotspotTest = false,
+
+				$window = $(window),
+
+				newScroll1 = false,		
+				newScroll1Finished = false,		
+				newScroll2 = false,		
+				newScroll2Finishd = false,
+
+				camToSave = {},
+				cameraInitializeX = -28, 
+				cameraInitializeY = .29,
+				cameraInitializeZ = 35,
+				// cameraInitializeX = 0, 
+				// cameraInitializeY = 0,
+				// cameraInitializeZ = 35,
+				defaultTransitionTime = .6,
+				defaultEase = "Power4.easeInOut",
+				scrollMessageStatus = "start",
+				hasScrolled = false,
+				hasDragged = false,
+				snapper = false,
+				lastScrollTop = 0,
+				scrollDirection,
+				defaultScrollTime = 50,
+				defaultScrollDistance = 1000,
+				killScrollTime = 20000,
+				initiatedExpandAnimation = false,
+				colletHover = false,
+				scrollStatus = "start",
+				hotspots = [],
+				spriteArr = [],
+				hotspotGroup,
+				hotspotSpeed = .3,
+				hotspotEase = Power4.easeIn,
+				breakspeed = .5,
+				toolTip,
+				engineSprite,
+				couplerSprite,
+				imagY,
+				finalTextY,
+				finalImageY,
+				pipesActivated,
+				pipeGroup,
+				pipeSpeed = 1.5,
+				pipesHovered = false,
+				coverClciked = false,		
+				canvasOffset,
+				hover = false,
+				pipesActivated = false,
+				hotspotsActivated = false,
+				hotspotsClicked = false,
+				tl = new TimelineMax({repeat:-1}),
+				tlGroup = new TimelineMax({}),
+				hotSpot0TimLine = new TimelineMax({}),
+				hotSpot1TimLine = new TimelineMax({}),
+				hotSpot2TimLine = new TimelineMax({}),
+				hotSpot3TimLine = new TimelineMax({}),
+				hotSpot4TimLine = new TimelineMax({}),
+				spritePulsing0 = new TimelineMax({}),
+				spritePulsing1 = new TimelineMax({}),
+				spritePulsing2 = new TimelineMax({}),
+				scrollController = new ScrollMagic.Controller(),
+				tlScroll1 = new TimelineMax({}),
+				tlScroll2 = new TimelineMax({}),
+
+				tlOpacityThing = new TimelineMax({}),
+				background,
+
+				teeBodyLoader,
+				leftWasher,
+				bottomWasher,
+                		rightWasher,
+                		rightOring,
+                		bottomOring,
+                		leftOring,
+                		rightCover,
+                		bottomCover,
+                		leftCover,
+                		rightCollet,
+                		bottomCollet,
+                		leftCollet,
+
+				rayCastItems = [],
+				theMaterials,		
+				hotspotsScale,		
+				hotspotsMaterial,		
+				selectedmaterial,		
+
+				nextActive = false,
+				previousActive = false,
+				detectScroll = false,
+				thisLabel,
+
+
+				// composer setup
+				composer,
+				effectFXAA, 
+				outlinePass,
+
+				initiatedObj = false,
+				selectedObjects = [],
+
+				origSceneContent = ".table-cell >h1, .table-cell >p",		
+				tooltipFadeSpeed = .4,
+				
+				composerParams = {
+					edgeStrength: 3.0,
+					edgeGlow: 0.0,
+					edgeThickness: 1.0,
+					pulsePeriod: 0,
+					rotate: false,
+					usePatternTexture: false
+				};
+
+
+
+
+			myScrollTime = defaultScrollTime;
+			scrollDistance = defaultScrollDistance;
+			console.log("ScrollTIme: ", myScrollTime);
+			console.log("Scroll Distance: ", scrollDistance);
+
+			function myScrollFunction(event) {
+				// event.preventDefault();	
+				// var delta = event.originalEvent.wheelDelta/120 || -event.originalEvent.detail/3;
+				// var scrollTop = $window.scrollTop();
+				// var finalScroll = scrollTop - parseInt(delta*scrollDistance);
+				// TweenMax.to($window, myScrollTime, { scrollTo : { y: finalScroll, autoKill:true }, ease: Power4.easeOut, overwrite: 5	});
+
+			}
+
+		
+
+				
+			var tlScene1 = new TimelineMax({paused:true})
+				.to('.onepix-imgloader', 1, {autoAlpha:0})
+				.to('.loading-container > *:not(.onepix-imgloader)', 1, {autoAlpha:0})
+				.set("#wrapper", {display:"none"})
+				
+				.add(addLights)
+				.add(scrollSetup)
+				.add(addBackground)
+				.fromTo(".first-scene h1", defaultTransitionTime, {autoAlpha:0, y:25}, {autoAlpha:1, y:0, ease: defaultEase}, "+=1.5")
+				.fromTo(".first-scene p", defaultTransitionTime, {autoAlpha:0, y:25}, {autoAlpha:1, y: 0, ease: defaultEase}, "-=.4")
+				.add(mouseFollow);
+
+
+			var fadeSpeed = .3;
+			tlDraggerFade = new TimelineMax({paused:true})
+				.to("#tail .top-left", fadeSpeed, {right:"51%", top:4})
+				.to("#tail .top-right", fadeSpeed, {left:"51%", top:4}, "-=" + fadeSpeed)
+				.to("#tail .bot-left", fadeSpeed, {right: "51%", bottom:4}, "-=" + fadeSpeed)
+				.to("#tail .bot-right", fadeSpeed, {left:"51%", bottom:4}, "-=" + fadeSpeed)
+				.to("#tail .drag-icon", .1, {autoAlpha:1})
+				.to("#tail .box", .1, {autoAlpha:0}, "-=.1");
+
+
+			function addLights() {
+
+				scene.add( new THREE.AmbientLight( 0x72a1bf ));
+				camera.add( leftSideLight );
+				camera.add( frontLight );
+				camera.add( leftSideBottomLight );
+				camera.add( rightSideBottomLight );
+				camera.add( rightSideLight );
+				camera.add( bottomLight );
+				camera.add( topLight );
+				scene.add( quickLight);
+
+
+				
+				TweenMax.to(quickLight.position, 4, { x:-100,y:0, z:20,ease:Power2.easeOut});
+				TweenMax.to(frontLight, 2, {intensity: 7});
+
+				TweenMax.to(leftSideLight.position, 2, { x:-50,y:15, z:-50, alpha:0.5, ease:Power2.easeInOut});
+				TweenMax.to(leftSideLight, 10, {intensity: 5});
+
+				TweenMax.to(leftSideBottomLight.position, 10, { x:-50,y:-20, z:-100, alpha:0.5, ease:Power2.easeInOut});
+				TweenMax.to(leftSideBottomLight, 10, {intensity: 2});
+
+				TweenMax.to(rightSideBottomLight.position, 10, { x:50,y:-20, z:-100, alpha:0.5, ease:Power2.easeInOut});
+				TweenMax.to(rightSideBottomLight, 10, {intensity: 2});
+
+				TweenMax.to(rightSideLight.position, 10, { x:50,y:15, z:-60, alpha:0.5, ease:Power2.easeInOut});
+				TweenMax.to(rightSideLight, 10, {intensity: 6});
+
+				TweenMax.to(bottomLight.position, 10, { x:0,y:-60, z:-50, alpha:0.5, ease:Power2.easeInOut});
+				TweenMax.to(bottomLight, 10, {intensity: 7});
+
+				setTimeout(function(manager){
+					TweenMax.to(topLight, 13,{intensity:4});
+					TweenMax.to(topLight.position, 5,{ x:0,y:60, z:-80, alpha:0.5, ease:Power2.easeInOut});
+				}, 1000);
+
+			}
+
+			function addBackground() {
+				camera.add( background );
+				TweenMax.to(background.material, 4, {opacity:1, delay:2})
+			}
+
+
+//////////////////// Loading Animation And Counter//////////////////////
+
+			function progressCounter(progress){
+				TweenMax.set("#lines", {visibility:"hidden"});
+				console.log('animationa loaded');
+				//animate the plugin text first, drawing to 100%
+				tl.from(".plugin-stroke", 4, {drawSVG:0, ease:Power1.easeInOut})
+				.fromTo(".stroke1", 8, {drawSVG:0}, {drawSVG:"102%"})
+				.fromTo(".stroke2", 6, {drawSVG:0}, {drawSVG:"102%"}, "-=7")
+				.fromTo(".stroke3", 4, {drawSVG:0}, {drawSVG:"102%"}, "-=4")
+				//fade in the real logo and the rest of the text
+				//hide the logo strokes that are now obscured by the real logo (just to improve rendering performance)
+				.set("#lines", {visibility:"hidden"});
+				tl.restart();
+				// TweenMax.to($('.count'), 4, {opacity:0});
+				 $('.count').text(progress + '%');
+				// TweenMax.to($('.loading'), 0.4, {opacity:0, yoyo:true,repeat:-1});
+
+				 if (progress == '100') {
+				 	TweenMax.to($('.count'), 4, {opacity:0,delay:1});
+					 	setTimeout(function(){
+							
+							$('.bgImg').animate({ opacity: 1 }, { duration: 2000 });
+
+						}, 2000);
+						TweenMax.to($('.loading-container'), 0.5, {opacity:0});
+						tlScene1.play();
+				 }else{
+				 }
+			}
+
+
+			var manager = new THREE.LoadingManager();
+
+			manager.onProgress = function (item, loaded, total) {
+				var progress = (loaded / total * 100).toFixed(0);
+				progressCounter(progress);
+				
+
+				// var percent = Math.round(callback.loaded / callback.total) * 100;
+				 console.log('progress',progress);
+
+			};
+			manager.onLoad = function () {
+			    	allItemsLoaded();
+			};
+			manager.onError = function () {
+			};
+			function allItemsLoaded() {
+
+			    // 
+			    
+			}
+
+//////////////////// END Loading Animation And Counter//////////////////////
+
+
+
+			var backgroundMaterial = new THREE.MeshBasicMaterial( {
+			//	color: new THREE.Color("rgb(255,0,0)"),
+				map: new THREE.TextureLoader(manager).load('/threejs-assets/textures/JG-Home-Background-Q75.jpg'),
+			//	shininess : 14,
+				transparent:true,
+				opacity:0
+			} );
+
+
+
+
+			var backgroundPlane = new THREE.PlaneBufferGeometry( 200, 200 );
+			background = new THREE.Mesh( backgroundPlane, backgroundMaterial );
+			background.position.set( 0, 0, -250);
+
+
+			//////////////// add Lights //////////////////////
+			
+			var quickLight = new THREE.SpotLight(0x4e81a6, 100, 29,0.8);
+				quickLight.position.set(200,0,20);
+			 	quickLight.rotation.set(0,0,0);
+			 	quickLight.castShadow = true;
+			 	quickLight.name= "QuickLight";
+
+			var frontLight = new THREE.DirectionalLight(0x829298, 0);
+
+			var leftSideLight = new THREE.DirectionalLight(0x829298, 0);
+				leftSideLight.position.set( 0, 0, 0 );
+				leftSideLight.rotation.set(0,-0.1,0); 
+				leftSideLight.castShadow = true;
+				leftSideLight.name = "LeftSideLight"
+				
+			var leftSideBottomLight = new THREE.DirectionalLight(0x829298, 0);
+				leftSideBottomLight.position.set( 0, 0, 0);
+				leftSideBottomLight.rotation.set(0,0,-0.3);
+				leftSideBottomLight.castShadow = true;
+				leftSideBottomLight.name = "LeftSideBottomLight"
+			
+			var rightSideBottomLight = new THREE.DirectionalLight(0x829298, 0);
+				rightSideBottomLight.position.set( 0, 0, 0);
+				rightSideBottomLight.rotation.set(0,0,-0.3);
+				rightSideBottomLight.castShadow = true;
+				rightSideBottomLight.name = "RightSideBottomLight"
+			
+			var rightSideLight = new THREE.DirectionalLight(0x4e81a6, 0);
+				rightSideLight.position.set( 0, 0, 0 );
+				rightSideLight.rotation.set(0,-0.1,0);
+				rightSideLight.castShadow = true;
+				rightSideLight.name = "RightSideLight"
+				
+
+			var bottomLight = new THREE.DirectionalLight(0x4e81a6, 0);
+				bottomLight.position.set( 0, 0, 0 );
+				bottomLight.rotation.set(0,0,0);
+				bottomLight.castShadow = true;
+				leftSideLight.name = "BottomLight"
+				
+			var topLight = new THREE.DirectionalLight(0x4e81a6, 0);
+				topLight.position.set( 0, 0, 0 );
+				topLight.rotation.set(0,0,0);
+				topLight.castShadow = true;
+				topLight.name = "TopLight"
+
+			// toplight function
+			setTimeout(function(manager){
+				TweenMax.to(topLight, 13,{intensity:40});
+				TweenMax.to(topLight.position, 5,{ x:0,y:100, z:0});
+				TweenMax.to(topLight.rotation, 5,{ x:-1.6,y:0, z:0});
+			}, 1000);
+			
+
+			//////////////// add Lights //////////////////////
+
+			var bmap = new THREE.TextureLoader(manager).load('/threejs-assets/textures/bmap.png');
+			var teeBmap = new THREE.TextureLoader(manager).load('/threejs-assets/textures/teeBmap.png');
+			teeBmap.wrapS = THREE.RepeatWrapping;
+			teeBmap.wrapT = THREE.RepeatWrapping;
+			teeBmap.repeat.x = 2;
+			teeBmap.repeat.y = 2;
+			var supWbmap = new THREE.TextureLoader(manager).load('/threejs-assets/textures/supWbmap.png');
+
+			var theMaterial = new THREE.MeshPhongMaterial({
+				color      :  new THREE.Color("rgb(0,0,0)"),
+			//	emissive   :  new THREE.Color("rgb(7,3,5)"),
+				specular   :  new THREE.TextureLoader(manager).load('/threejs-assets/textures/specular.png'),
+				shininess  :  8,
+				bumpMap    :  bmap,
+				bumpScale  :  0.2,
+				transparent : true,
+			});
+
+			var colletMaterial = new THREE.MeshPhongMaterial({
+				color      :  new THREE.Color("rgb(0,0,0)"),
+			//	emissive   :  new THREE.Color("rgb(7,3,5)"),
+				specular   :  new THREE.TextureLoader(manager).load('/threejs-assets/textures/specular.png'),
+				shininess  :  8,
+				bumpMap    :  bmap,
+				bumpScale  :  0.2,
+				transparent : true,
+			});
+
+				var bottomCoverMaterial = new THREE.MeshPhongMaterial({
+				color      :  new THREE.Color("rgb(0,0,0)"),
+			//	emissive   :  new THREE.Color("rgb(7,3,5)"),
+				specular   :  new THREE.TextureLoader(manager).load('/threejs-assets/textures/specular.png'),
+				shininess  :  8,
+				bumpMap    :  bmap,
+				bumpScale  :  0.2,
+				transparent : true,
+			});
+
+
+			var teeMaterial = new THREE.MeshPhongMaterial({
+				color      :  new THREE.Color("rgb(0,0,0)"),
+			//	emissive   :  new THREE.Color("rgb(7,3,5)"),
+				shininess  :  8,
+				bumpMap    :  teeBmap,
+				bumpScale  :  0.2,
+				transparent : true,
+			});
+
+			var coverMaterial = new THREE.MeshPhongMaterial({
+				color      :  new THREE.Color("rgb(0,0,0)"),
+			//	emissive   :  new THREE.Color("rgb(7,3,5)"),
+				shininess  :  8,
+				bumpMap    :  teeBmap,
+				bumpScale  :  0.2,
+				transparent : true,
+			});
+			
+
+			var supportWasherMaterial = new THREE.MeshPhongMaterial({
+				color      :  new THREE.Color("rgb(16,16,16)"),
+				emissive   :  new THREE.Color("rgb(0,0,0)"),
+				specular   : new THREE.Color("rgb(0,0,0)"),
+				shininess  :  0,
+				transparent : true,
+			});
+
+			 /// pipe textures
+			var copperMaterial = new THREE.MeshPhongMaterial({
+				color      :  new THREE.Color("rgb(26,7,2)"),
+				emissive   :  new THREE.Color("rgb(10,10,10)"),
+				specular   : new THREE.Color("rgb(10,10,10)"),
+				shininess  :  50,
+				transparent:true,
+				opacity: 0,
+			});
+			var pexMaterial = new THREE.MeshPhongMaterial({
+				color      :  new THREE.Color("rgb(3,11,81)"),
+				emissive   :  new THREE.Color("rgb(10,10,10)"),
+				specular   : new THREE.Color("rgb(10,10,10)"),
+				shininess  :  30,
+				transparent:true,
+				opacity: 0,
+			});
+			var cpvcMaterial = new THREE.MeshPhongMaterial({
+				color      :  new THREE.Color("rgb(30,27,21)"),
+				emissive   :  new THREE.Color("rgb(7,3,5)"),
+				specular   : new THREE.Color("rgb(17,17,17)"),
+				shininess  :  3,
+				transparent:true,
+				opacity: 0,
+			});
+			
+
+			////////////////////////////////////////////////////////////// loading animation //////////////////////////////////////
+			$(document).ready(function () {
+
+
+
+				$(document).bind('mousemove', function(e){
+	  				$('#tail').css({ left:  e.pageX - 75, top:  e.pageY -50 });
+				});
+
+				// loading animation
+				// if ($('.loading-container').length) {
+
+				// 	// to show loading animation
+				// 	$imgloader = $('.loading-container');
+				// 	$loadingimg = $('<div id="canvasloader-container" class="onepix-imgloader"><div></div></div>');
+
+				// 	// $loadingimg.attr("src","images/flexslider/loading.gif");
+				// 	$imgloader.prepend($loadingimg);
+
+				// 	// // canvasloader code
+				// 	// var cl = new CanvasLoader('canvasloader-container');
+				// 	// 	cl.setColor('#4f4f4f'); // default is '#000000'
+				// 	// 	cl.setDiameter(45); // default is 40
+				// 	// 	cl.setDensity(75); // default is 40
+				// 	// 	cl.setRange(0.7); // default is 1.3
+				// 	// 	cl.setSpeed(3); // default is 2
+				// 	// 	cl.setFPS(5); // default is 24
+				// 	// 	cl.show(); // Hidden by default
+
+				// 	// setTimeout(function(){
+
+						
+				// 	// 	onWindowResize();
+
+				// 	// }, 200);
+				// 	// var count = 0;
+				//  //    var counting = setInterval(function(){
+				//  //        if(count < 101) {
+				//  //            $('.onepix-imgloader').text(count + '%');
+				//  //            count++
+				//  //        } else {
+				//  //            clearInterval(counting)
+				//  //        }
+				//  //    }, 10);
+					
+				//  }
+
+
+				
+
+
+
+/////////////////////////////// ------------------------------------------------------------------
+
+
+
+
+			    	init();
+
+
+			    	TweenMax.set("#animation-canvas", {left:containerOffsetDefault});
+			    	// window.addEventListener( 'load', init );
+
+			    	// $("#right").on('click',function(){
+			    		
+			    	// 	var theta = 1.5;
+	       //                  var x = camera.position.x;
+	       //                  var z = camera.position.z;
+
+	       //                  var moveX = x * Math.cos(theta) - z * Math.sin(theta);
+	       //                  var moveZ = z * Math.cos(theta) + x * Math.sin(theta);
+
+	       //                  TweenMax.to(camera.position,0.5,{ x:moveX,z:moveZ, onUpdate:updateCamera});
+
+			    	// });
+			
+			});
+
+				
+			////////////////////////////////////////////////////////////// loading animation //////////////////////////////////////
+
+
+
+			function init() {
+
+
+
+				///////////////////// =================== 
+				killScroll();		
+				///////////////////// =================== 
+
+
+				makeMobile = containerWidth < mobileBreakpoint;
+
+				var containerWidth = $("#info").width(),
+					containerHeight = makeMobile ? containerWidth : window.innerHeight;
+				
+				containerOffsetDefault = makeMobile ? 0 : "-22%";
+
+				containerOffsetRIghtSide = makeMobile ? "-8%" : "12%";
+
+
+				camera = new THREE.PerspectiveCamera( 35, containerWidth / containerHeight, 1, 10000 );
+				camera.position.set( cameraInitializeX, cameraInitializeY, cameraInitializeZ);
+				camera.target = new THREE.Vector3();
+			//	camera.fov = Math.max( 70 / camera.aspect, 100 );
+				
+				group = new THREE.Group();
+				group.position.y = 3;
+			//	group.scale.set(.6, .6, .6);
+
+				raycaster = new THREE.Raycaster();
+				mouse = new THREE.Vector3();
+				scene = new THREE.Scene();
+
+				scene.selectable = [];
+
+				
+
+
+				var deviceRatio = window.devicePixelRatio ? window.devicePixelRatio : 1;
+				
+				renderer = new THREE.WebGLRenderer({alpha:true, antialias: true}); // antialias: false
+				
+				renderer.setPixelRatio()
+				renderer.setSize( containerWidth, containerHeight);
+				renderer.setSize( containerWidth, containerHeight );        
+				renderer.setViewport( 0, 0, containerWidth*deviceRatio, containerHeight*deviceRatio );
+
+				camera.aspect = containerWidth / containerHeight;
+				container = document.getElementById( 'animation-canvas' );
+				container.appendChild( renderer.domElement );
+
+				// if(!$rootScope.isMobile) {
+
+				// 	controls = new THREE.OrbitControls( camera, renderer.domElement );
+				// 	// controls.minDistance = 45;
+				// 	// controls.maxDistance = 200;
+				// 	controls.rotateSpeed = .7;
+				// 	controls.enableZoom = false;
+				// 	controls.enablePan = false;
+				
+
+				// ///////////////////// =================== 
+				// //	controls.enabled = false;		
+				// ///////////////////// =================== 
+
+
+				// }
+
+
+			
+				//////////////////////////////////////////////////////////////////////////////// LOAD OBJECTS !!!!!! //////////////////
+				teeBodyLoader = new THREE.OBJLoader( manager );
+				first_obj = new THREE.OBJLoader( manager );
+				first_obj2 = new THREE.OBJLoader( manager );
+				washer = new THREE.OBJLoader( manager );
+				supportWasher = new THREE.OBJLoader( manager );
+
+				teeBodyLoader.load( '/threejs-assets/models/1-2CTSTeeBody.obj', function ( object ) {
+					
+					object.traverse( function ( child ) {
+	                             	if ( child instanceof THREE.Mesh ) {
+							child.material = teeMaterial;
+							child.material.needsUpdate = true;
+                                 	}
+                             });
+				
+					object.rotation.x = 3.14;
+					object.position.x = 0;
+
+					object.rotation.y = 0;
+					object.position.y = 0;
+
+					object.rotation.z = 0;
+					object.position.z = 0;
+
+					object.name = "teeBody";
+
+					object.scale.set(scaleAmount, scaleAmount, scaleAmount);
+			//		scene.add( object);
+				//	//.push(object);
+					group.add( object );
+						
+				}); // teeBody loader
+
+				first_obj.load( '/threejs-assets/models/CTS_Collet.obj', function ( object ) {
+					var arr = [];	
+					object.traverse( function ( child ) {
+		                   	if ( child instanceof THREE.Mesh ) {
+							for (var i = 0; i <= 2; i++) {
+							 	arr.push(object);
+								arr[i].scale.set(scaleAmount, scaleAmount, scaleAmount);
+							}
+							child.material = colletMaterial;
+							child.material.needsUpdate = true;
+                           		}
+	                       	});
+
+
+
+					arr[0].rotation.x = 0;
+					arr[0].position.x = -8.2;
+
+					arr[0].rotation.y = -1.56;
+					arr[0].position.y = 0;
+
+					arr[0].rotation.z = 0;
+					arr[0].position.z = 0;
+					arr[0].name = 'leftCollet';
+
+				//	scene.add( arr[0].clone());
+
+					group.add( arr[0].clone());
+
+
+					// arr[1].children[0].material = bottomCoverMaterial;
+					// arr[1].children[0].material.needsUpdate = true;
+					arr[1].rotation.x = -1.56;
+					arr[1].position.x = 0.1;
+
+					arr[1].rotation.y = 3.13;
+					arr[1].position.y = -8.2;
+
+					arr[1].rotation.z = 0;
+					arr[1].position.z = 0;
+					arr[1].name = 'bottomCollet';
+							
+					group.add( arr[1].clone() );
+
+					arr[2].rotation.x = 0;
+					arr[2].position.x = 8.2;
+
+					arr[2].rotation.y = 1.56;
+					arr[2].position.y = 0;
+
+					arr[2].rotation.z = 0;
+					arr[2].position.z = 0;
+					arr[2].name = 'rightCollet';
+					
+					group.add( arr[2]);
+				});
+
+
+				first_obj2.load( '/threejs-assets/models/locking-cover.obj', function ( object ) {
+					var arr = [];	
+					object.traverse( function ( child ) {
+	                          		if ( child instanceof THREE.Mesh ) {
+						
+					 		for (var i = 0; i <= 2; i++) {
+							 	arr.push(object);
+								arr[i].scale.set(scaleAmount, scaleAmount, scaleAmount);
+							}
+	                               }
+	                        });
+
+					arr[0].children[0].material = coverMaterial;
+					arr[0].children[0].material.needsUpdate = true;
+					arr[0].rotation.x = 0;
+					arr[0].position.x = -7.8;
+
+					arr[0].rotation.y = 0;
+					arr[0].position.y = 0;
+
+					arr[0].rotation.z = 0;
+					arr[0].position.z = 0;
+					arr[0].name = 'leftCover';
+					
+					group.add( arr[0].clone());
+
+					arr[1].children[0].material = bottomCoverMaterial;
+					arr[1].children[0].material.needsUpdate = true;
+					arr[1].rotation.x = 0;
+					arr[1].position.x = 0;
+
+					arr[1].rotation.y = 0;
+					arr[1].position.y = -7.8;
+
+					arr[1].rotation.z = 1.58;
+					arr[1].position.z = 0;
+					arr[1].name = 'bottomCover';
+					
+
+					group.add( arr[1].clone() );
+
+
+					arr[2].children[0].material = coverMaterial;
+					arr[2].children[0].material.needsUpdate = true;
+					arr[2].rotation.x = 0;
+					arr[2].position.x = 7.8;
+
+					arr[2].rotation.y = 9.43;
+					arr[2].position.y = 0;
+
+					arr[2].rotation.z = 0;
+					arr[2].position.z = 0;
+					arr[2].name = 'rightCover';
+					
+					group.add( arr[2]);
+						
+				});
+
+				washer.load( '/threejs-assets/models/Oring.obj', function ( object ) {
+					var arr = [];	
+					object.traverse( function ( child ) {
+		                       	if ( child instanceof THREE.Mesh ) {
+														
+							child.material = theMaterial;
+							child.material.needsUpdate = true;
+						
+							for (var i = 0; i <= 2; i++) {
+							 	arr.push(object);
+								arr[i].scale.set(scaleAmount, scaleAmount, scaleAmount);
+							}
+		                        }
+		                  });
+								
+					arr[0].rotation.x = 0;
+					arr[0].position.x = -7;
+
+					arr[0].rotation.y = -1.565;
+					arr[0].position.y = 0;
+
+					arr[0].rotation.z = 0;
+					arr[0].position.z = 0;
+					arr[0].name = 'leftOring';
+					group.add( arr[0].clone());
+
+					arr[1].rotation.x = -1.55;
+					arr[1].position.x = 0.1;
+
+					arr[1].rotation.y = 0;
+					arr[1].position.y = -4;
+
+					arr[1].rotation.z = -10;
+					arr[1].position.z = 0;
+					arr[1].name = 'bottomOring';
+					group.add( arr[1].clone() );
+
+					arr[2].rotation.x = 0;
+					arr[2].position.x = 7;
+
+					arr[2].rotation.y = 1.565;
+					arr[2].position.y = 0;
+
+					arr[2].rotation.z = 0;
+					arr[2].position.z = 0;
+
+					arr[2].name = 'rightOring';
+					group.add( arr[2]);
+				});
+
+				supportWasher.load( '/threejs-assets/models/SupportWasher.obj', function ( object ) {
+					var arr = [];	
+					object.traverse( function ( child ) {
+		                        if ( child instanceof THREE.Mesh ) {
+														
+							child.material = supportWasherMaterial;
+							child.material.needsUpdate = true;
+					
+							for (var i = 0; i <= 2; i++) {
+							 	arr.push(object);
+								arr[i].scale.set(scaleAmount, scaleAmount, scaleAmount);
+							}
+	                               }
+		                  });
+					arr[0].rotation.x = 0;
+					arr[0].position.x = -4.8;
+
+					arr[0].rotation.y = -1.566;
+					arr[0].position.y = 0;
+
+					arr[0].rotation.z = 0;
+					arr[0].position.z = 0;
+					arr[0].name = 'leftWasher';
+					group.add( arr[0].clone());
+
+					arr[1].rotation.x = -1.55;
+					arr[1].position.x = 0;
+
+					arr[1].rotation.y = 0;
+					arr[1].position.y = -4;
+
+					arr[1].rotation.z = -1.6;
+					arr[1].position.z = 0;
+					arr[1].name = 'bottomWasher';
+					group.add( arr[1].clone() );
+
+					arr[2].rotation.x = 0;
+					arr[2].position.x = 4.8;
+
+					arr[2].rotation.y = 1.565;
+					arr[2].position.y = 0;
+
+					arr[2].rotation.z = 0;
+					arr[2].position.z = 0;
+					arr[2].name = 'rightWasher';
+					group.add( arr[2]);
+				});
+
+				////////// pipe hot spots////////
+
+				var spriteMap = new THREE.TextureLoader().load( "/threejs-assets/HotSpot-Glow.png" );
+				var spriteMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff,opacity: 0, fog: true } );
+				var spriteMaterial0 = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff,opacity: 0, fog: true } );
+				var spriteMaterial1 = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff,opacity: 0, fog: true } );
+				var spriteMaterial2 = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff,opacity: 0, fog: true } );
+			
+				for (var i = 0; i <= 2; i++) {
+					var sprite = new THREE.Sprite( spriteMaterial );
+					sprite.scale.set(2,2,2);
+					spriteArr.push(sprite);
+				
+				}
+				spriteArr[0].position.set(0.12,14.82,8.12);
+				spriteArr[0].material = spriteMaterial0;
+				spriteArr[1].position.set(-14.74,0.12,8.12);
+				spriteArr[1].material = spriteMaterial1;
+				spriteArr[2].position.set(-0.10,-14.82,8.12);
+				spriteArr[2].material = spriteMaterial2;
+
+				scene.add( spriteArr[0] );
+				scene.add( spriteArr[1] );
+				scene.add( spriteArr[2] );
+
+					
+			
+		
+				/////////////////////////// LOAD SVG HOT SPOT ////////////////////
+
+				
+				var hotspotMaterial = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff,opacity: 0, fog: true } );
+				var hotspotMaterial0 = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff,opacity: 0, fog: true } );
+				var hotspotMaterial1 = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff,opacity: 0, fog: true } );
+				var hotspotMaterial2 = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff,opacity: 0, fog: true } );
+				var hotspotMaterial3 = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff,opacity: 0, fog: true } );
+				var hotspotMaterial4 = new THREE.SpriteMaterial( { map: spriteMap, color: 0xffffff,opacity: 0, fog: true } );
+				
+						for (var i = 0; i <= 4; i++) {
+							var hotspot = new THREE.Sprite( hotspotMaterial );
+							hotspot.scale.set(2,2,2);
+							hotspots.push(hotspot);
+						
+						}
+					hotspots[0].position.set(7.8, -5.8, 10);
+					hotspots[0].material = hotspotMaterial0;
+					hotspots[0].name = 'collet';
+					hotspots[1].position.set(3.95, -.05, 5);
+					hotspots[1].material = hotspotMaterial1;
+					hotspots[1].name = 'washer';
+					hotspots[2].position.set(14.8, 8.6, 10);
+					hotspots[2].material = hotspotMaterial2;
+					hotspots[2].name = 'oring';
+					hotspots[3].position.set(20, 8.6, 10);
+					hotspots[3].material = hotspotMaterial3;
+					hotspots[3].name = 'cover';
+					// hotspots[4].position.set(6.7, 8.1, 10);
+					// hotspots[4].material = hotspotMaterial4;
+					// hotspots[4].name = 'teeBodySpot';
+
+
+				
+					scene.add(hotspots[0]);
+					scene.add(hotspots[1]);
+					scene.add(hotspots[2]);
+					scene.add(hotspots[3]);
+					// scene.add(hotspots[4]);
+
+			
+
+
+
+
+
+
+				// var hotSpotUrl = '/threejs-assets/HotSpot-Glow.png';
+			 //      var hotspotMaterial = new THREE.MeshBasicMaterial({
+  		// 			map :  new THREE.TextureLoader(manager).load(hotSpotUrl),
+  		// 			transparent:true,
+  		// 			opacity: 0
+				// });
+
+			  
+
+				// for (var i = 0; i <= 4; i++) {
+				// 	var mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), hotspotMaterial);
+			 //      	mesh.castShadow = true;
+				// 	mesh.overdraw = true;
+				// 	mesh.rotation.y = .5;
+				// 	mesh.hoverIt = function() {
+				//  		console.log("mesh: " + i, this )
+				//  	}
+				//  	hotspots.push(mesh);
+				 	
+				// }
+
+				// console.log("hotspots: ", hotspots);
+				// hotspots[0].position.set(7.8, -5.8, 10);
+				// hotspots[0].name = "Collet";
+				// hotspots[1].position.set(3.95, -.05, 5);
+				// hotspots[1].name = "Washer"
+				// hotspots[2].position.set(14.8, 8.6, 10);
+				// hotspots[2].name = "Oring";
+				// hotspots[3].position.set(20, 8.6, 10);
+				// hotspots[3].name = "Cover"
+				// hotspots[4].position.set(6.7, 8.1, 10);
+				// hotspots[4].name = "TeeBody"
+
+			
+
+
+
+
+				// hotspotGroup = new THREE.Group();
+				// hotspotGroup.name = "hotspots";
+				// hotspotGroup.add(hotspots[0]);
+				// hotspotGroup.add(hotspots[1]);
+				// hotspotGroup.add(hotspots[2]);
+				// hotspotGroup.add(hotspots[3]);
+				// hotspotGroup.add(hotspots[4]);
+				// scene.add(hotspotGroup);
+
+
+				/// pipes Group
+
+				pipeGroup = new THREE.Group();
+				pipeGroup.name = "pipeGroup";
+
+				var copperCylinder = new THREE.CylinderBufferGeometry(  3, 3, 30, 32 );
+				copperCylinder.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 20, 0 ) );
+				copperCylinder.applyMatrix( new THREE.Matrix4().makeRotationX( THREE.Math.degToRad( 90 ) ) );
+				copperCylinder.applyMatrix( new THREE.Matrix4().makeRotationY( THREE.Math.degToRad( -90 ) ) );
+				
+				// copperCylinder.position.x = 12.94;
+				
+				pipeGroup.add( new THREE.Mesh( copperCylinder, copperMaterial ) );
+
+				var pexCylinder = new THREE.CylinderBufferGeometry(  3, 3, 30, 32 );
+				pexCylinder.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 20, 0 ) );
+				pexCylinder.applyMatrix( new THREE.Matrix4().makeRotationX( THREE.Math.degToRad( 180 ) ) );
+				pexCylinder.applyMatrix( new THREE.Matrix4().makeRotationY(-0.42) );
+
+			
+				pipeGroup.add( new THREE.Mesh( pexCylinder, pexMaterial ) );
+
+
+				var cpvcCylinder = new THREE.CylinderBufferGeometry(  3, 3, 30, 32 );
+				cpvcCylinder.applyMatrix( new THREE.Matrix4().makeTranslation( 0, 20, 0 ) );
+				cpvcCylinder.applyMatrix( new THREE.Matrix4().makeRotationX( THREE.Math.degToRad( -90 ) ) );
+				cpvcCylinder.applyMatrix( new THREE.Matrix4().makeRotationY( THREE.Math.degToRad( 90 ) ) );
+				cpvcCylinder.applyMatrix( new THREE.Matrix4().makeRotationZ(  -1.58) );
+				
+				pipeGroup.add( new THREE.Mesh( cpvcCylinder, cpvcMaterial ) );
+
+				// pipeGroup[2].rotation.z(0, 0, -1.58);
+				// pipeGroup.add(pipeGroup[2]);piep
+
+				scene.add(pipeGroup);
+
+				pipeGroup.children[0].name = "Copper"; // copper
+				pipeGroup.children[1].name="Pex"; // pex
+				pipeGroup.children[2].name = "CPVC"; // cpvc
+
+
+				pipeGroup.children[0].position.set(-16, 0, 0); // copper
+				pipeGroup.children[1].position.set(0, -15, 0); // pex
+				pipeGroup.children[2].position.set(0, 17, 0); // cpvc
+
+
+				///////// ADD ENGINE SPRITE ////////////
+
+				var engineMap = new THREE.TextureLoader().load( "/threejs-assets/textures/engine.png" );
+				var engineMaterial = new THREE.SpriteMaterial( { map: engineMap, color: 0xffffff,opacity: 0} );
+				var engine = new THREE.Sprite( engineMaterial );
+				
+				engineSprite = new THREE.Sprite( engineMaterial );
+				engineSprite.scale.set(15,15, 15);
+				engineSprite.name = "engine";
+				
+				imageY = makeMobile ? 0 : 1;
+				engineSprite.position.set(0,-2, 0)
+
+
+				scene.add(engineSprite);
+
+
+				///////// ADD COUPLER SPRITE ////////////
+
+				var couplerMap = new THREE.TextureLoader().load( "/threejs-assets/textures/coupler.png" );
+				var couplerMaterial = new THREE.SpriteMaterial( { map: couplerMap, color: 0xffffff,opacity: 0 } );
+				var coupler = new THREE.Sprite( couplerMaterial );
+				
+				couplerSprite = new THREE.Sprite( couplerMaterial );
+				couplerSprite.scale.set(16,16, 16);
+				couplerSprite.name = "coupler";
+				couplerSprite.position.set(0, -2, 0)
+
+
+				scene.add(couplerSprite);
+
+
+			
+				//////////////////////////////////////////////////////////////////////////////// LOAD OBJECTS !!!!!! //////////////////
+				for($i = 0; $i < hotspots.length; $i++) {
+				//	hotspotGroup.add(hotspots[i]);
+					scene.selectable.push(hotspots[$i])
+				}
+
+
+				/////////////////////////////////////////////////////// SCENE ADDS /////////////////////
+				scene.add( group );
+				scene.add(camera);
+				window.scene = scene;
+				//console.log("group, ", group);
+
+
+				/////////////////////////////////////////////// Composer Effects //////////////////////////////////////////////////////////////////////////////////////
+
+				
+				renderPass = new THREE.RenderPass( scene, camera );
+				composer.addPass( renderPass );
+				composer.addPass( copyPass );
+
+				outlinePass = new THREE.OutlinePass( new THREE.Vector2(window.innerWidth, window.innerHeight), scene.children[10], camera);
+					// renderer = new THREE.WebGLRenderer( {  alpha:true } );
+				composer.addPass( outlinePass );
+				
+
+				effectFXAA = new THREE.ShaderPass(THREE.FXAAShader);
+				effectFXAA.uniforms['resolution'].value.set(1 / $('#animation-canvas').width(), 1 / $('#animation-canvas').height() );
+				effectFXAA.renderToScreen = true;
+				composer.addPass( effectFXAA );
+
+				window.scene = scene;// need it for three js debug
+
+
+				//console.log("Scene", scene);
+				animate();
+				window.addEventListener( 'resize', onWindowResize, false );
+		
+			///// restore to original
+				camToSave.position = camera.position.clone();
+				camToSave.rotation = camera.rotation.clone();
+
+				if(controls) {
+					camToSave.controlCenter = controls.target.clone();
+				}
+				
+
+
+			} // init()
+
+
+
+
+			function setUpSelectableState(event) {
+				var canvas = document.getElementById("animation-canvas");
+    				var rect = canvas.getBoundingClientRect();
+				mouse.x = ( (event.clientX - rect.left) / renderer.domElement.clientWidth ) * 2 - 1;
+				mouse.y = - ( (event.clientY - rect.top) / renderer.domElement.clientHeight ) * 2 + 1;
+				mouse.z = .5;
+				raycaster.setFromCamera( mouse, camera );
+			}
+
+			function addSelectedObjects(object) {
+
+				//////////////////////=================================
+				// if (object.type == 'Mesh' && object.type != 'Sprite') {
+					selectedObjects.push(object);
+						// console.log('selectedObjects',object);
+				// }else if (object.type != 'Sprite'){
+				// 	selectedObjects.push(object.children[0]);
+				// }
+				
+			}
+			
+			function testHotspotName(myString) {
+				if(selectedObject.name === myString) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+			function testParentName(myString) {
+				if(selectedObject.parent.name.includes(myString)) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+			function createOutlinePass() {
+						// outlinePass.selectedObjects.parent.parent.children
+
+				if (hotspotsActivated) {
+					outlinePass.selectedObjects = selectedObjects;
+					outlinePass.edgeStrength = 2;
+					outlinePass.edgeGlow = 1;
+					outlinePass.edgeThickness = 1.2;
+					outlinePass.pulsePeriod = 0;
+					outlinePass.visibleEdgeColor = new THREE.Color(0x00aeef);
+					// console.log('outlinePass',outlinePass);
+				}
+					
+			}
+
+		
+//////////////////////// Start hotspots and tooltip interaction ////////////
+
+
+		function activatePipes() {
+				if(scrollDirection === "down") {
+					nextPrevious(true, true, 1500);
+					pipesActivated = true;
+					document.addEventListener( 'mousemove', onMouseMove, false );
+					spritePulsing();
+
+				} else {
+					pipesActivated = false;
+						document.removeEventListener( 'click', onCoverClick, false );
+						document.removeEventListener( 'mousemove', onMouseMove, false );
+
+						objOpacity();
+				}
+				
+			}
+		function removePipes() {
+
+			if(scrollDirection === "up") {
+				nextPrevious(true, true, 700);
+				pipesActivated = true;
+				document.addEventListener( 'mousemove', onMouseMove, false );
+				document.addEventListener( 'click', onCoverClick, false );
+				coverClciked = false;
+
+			} else {
+				pipesActivated = false;
+				document.removeEventListener( 'click', onCoverClick, false );
+				document.removeEventListener( 'mousemove', onMouseMove, false );
+
+				objOpacity();
+				coverClciked = true;
+			}
+			
+		}
+
+		function finishScene3() {
+			if(scrollDirection === "down") {
+				nextPrevious(true, true, 500);
+			}
+		}
+
+		function startScene4() {
+			if(scrollDirection === "up") {
+				nextPrevious(true, true, 500);
+			}
+		}
+
+
+
+		function finishScene4() {
+			if(scrollDirection === "down") {
+				nextPrevious(false, true, 1000);
+			} 
+		}
+
+		function nextPrevious($next, $previous, $time) {
+			console.log("Scroll Direction: ", scrollDirection);
+			setTimeout(function() {
+		//		fadeInMouse(200);
+				if($next === true ) {
+					// $(".tester.next").addClass("active");
+
+					nextActive = true;
+				}
+				if($previous === true) {
+					// $(".tester.previous").addClass("active");
+					previousActive = true;
+
+				}
+
+			}, $time)
+		}
+			
+		function activateHotspots() {
+			console.log("Activate Hotspots running")
+			console.log("Scroll Direction: ", scrollDirection);
+				if(scrollDirection === "down") {
+					
+					// if we skip sections, this will need to be ignored
+
+					nextPrevious(true, true, 500);
+
+					hotspotsActivated = true;
+					document.addEventListener( 'mousemove', onMouseMove, false );
+					document.addEventListener( 'click', onHotSpotClick, false );
+					hotSpotsPulsing();
+
+				} else {
+
+					hotspotsActivated = false;
+					document.removeEventListener( 'mousemove', onMouseMove, false );
+					document.removeEventListener( 'click', onHotSpotClick, false );
+					objOpacity();
+					outlinePass.selectedObjects = [];
+				}
+				
+			}
+
+		function removeHotspots() {
+
+			
+			if(scrollDirection === "up") {
+
+				nextPrevious(true, true, 500);
+
+
+				hotspotsActivated = true;
+				document.addEventListener( 'mousemove', onMouseMove, false );
+				document.addEventListener( 'click', onHotSpotClick, false );
+				hotSpotsPulsing();
+			} else {
+				hotspotsActivated = false;
+				outlinePass.selectedObjects = [];
+				document.removeEventListener( 'mousemove', onMouseMove, false );
+				document.removeEventListener( 'click', onHotSpotClick, false );
+			}
+			
+		}
+
+
+		function coverClickTest() {
+			if (pipesActivated != false) {
+				document.addEventListener( 'click', onCoverClick, false );
+			}else{
+			};
+			
+		}
+		function objOpacity(){
+
+
+			tlOpacityThing
+				.to([rightCover.children[0].material, bottomCover.children[0].material, leftCover.children[0].material, rightOring.children[0].material, leftOring.children[0].material, bottomOring.children[0].material, rightWasher.children[0].material, leftWasher.children[0].material, bottomWasher.children[0].material, teeBody.children[0].material,  rightCollet.children[0].material,  leftCollet.children[0].material, bottomCollet.children[0].material
+				], tooltipFadeSpeed, {opacity:1, ease:Power2.easeInOut})
+				.to(teeBody.children[0].material, tooltipFadeSpeed, { opacity:1, ease:Power2.easeIn}, "-=" + tooltipFadeSpeed)
+			
+				.set(".scrollTest", {position:"absolute"})
+				setTimeout(function() {
+					resumeScroll();
+				}, 300);
+				TweenMax.to(origSceneContent, tooltipFadeSpeed, {opacity:1, ease:Power2.easeOut}, "+=" + tooltipFadeSpeed);
+		}
+
+		function spritePulsing(){
+			console.log('sprites active');
+			spritePulsing0.fromTo(spriteArr[0].scale,0.5, {x:1.5,y:1.5,z:1.5,yoyo:true,repeat:-1},{x:2,y:2,z:2,yoyo:true,repeat:-1}, "-=.5");
+			spritePulsing1.fromTo(spriteArr[1].scale,0.5, {x:1.5,y:1.5,z:1.5,yoyo:true,repeat:-1},{x:2,y:2,z:2,yoyo:true,repeat:-1}, "-=.5");
+			spritePulsing2.fromTo(spriteArr[2].scale,0.5, {x:1.5,y:1.5,z:1.5,yoyo:true,repeat:-1},{x:2,y:2,z:2,yoyo:true,repeat:-1}, "-=.5");
+		}
+		function hotSpotsPulsing(){
+			hotSpot0TimLine.fromTo(	hotspots[0].scale,0.5, {x:1.5,y:1.5,z:1.5,yoyo:true,repeat:-1},{x:2,y:2,z:2,yoyo:true,repeat:-1}, "-=.5");
+			hotSpot1TimLine.fromTo(	hotspots[1].scale,0.5, {x:1.5,y:1.5,z:1.5,yoyo:true,repeat:-1},{x:2,y:2,z:2,yoyo:true,repeat:-1}, "-=.5");
+			hotSpot2TimLine.fromTo(	hotspots[2].scale,0.5, {x:1.5,y:1.5,z:1.5,yoyo:true,repeat:-1},{x:2,y:2,z:2,yoyo:true,repeat:-1}, "-=.5");
+			hotSpot3TimLine.fromTo(	hotspots[3].scale,0.5, {x:1.5,y:1.5,z:1.5,yoyo:true,repeat:-1},{x:2,y:2,z:2,yoyo:true,repeat:-1}, "-=.5");
+			hotSpot4TimLine.fromTo(	hotspots[4].scale,0.5, {x:1.5,y:1.5,z:1.5,yoyo:true,repeat:-1},{x:2,y:2,z:2,yoyo:true,repeat:-1}, "-=.5");
+	//		hotSpot0TimLine.fromTo(	hotspotsScale, 0.5, {x:1.5,y:1.5,z:1.5,yoyo:true,repeat:-1},{x:2,y:2,z:2,yoyo:true,repeat:-1}, "-=.5");
+		}
+		function spriteRotation(){
+			TweenMax.to(spriteArr[0].material,1 ,{rotation:Math.PI / 1.5, ease:Quad.easeInOut, repeat:-1});
+			TweenMax.to(spriteArr[1].material,1 ,{rotation:Math.PI / 1.5, ease:Quad.easeInOut, repeat:-1});
+			TweenMax.to(spriteArr[2].material,1 ,{rotation:Math.PI / 1.5, ease:Quad.easeInOut, repeat:-1});
+		}
+		function toolTipBoxHide(){
+
+			document.addEventListener( 'mousemove', onMouseMove, false );
+
+			TweenMax.to(".toolTip_Container", 0.5 ,{opacity:0, ease:Linear.easeIn}, "-=.5");
+			TweenMax.set(".modal-background", {display:"none"});
+			outlinePass.selectedObjects = [];
+			hover = false;
+			hotSpot0TimLine.resume();
+			hotSpot1TimLine.resume();
+			hotSpot2TimLine.resume();
+			hotSpot3TimLine.resume();
+			hotSpot4TimLine.resume();
+
+			TweenMax.to(hotspotsMaterial, 0 ,{rotation:0});
+			nextPrevious(true, true, 500);
+			
+
+			
+		}
+
+
+		function hotspotsHideTrigger(objName){
+			if (hidehotSpots != true && hotspotsActivated) {
+				hidehotSpots = true;
+				TweenMax.to(hotspots[0].material,1 ,{opacity:0});
+				TweenMax.to(hotspots[1].material,1 ,{opacity:0});
+				TweenMax.to(hotspots[2].material,1 ,{opacity:0});
+				TweenMax.to(hotspots[3].material,1 ,{opacity:0});
+				TweenMax.to(hotspots[4].material,1 ,{opacity:0});
+
+
+			}else if(hotspotsActivated){
+				hidehotSpots = false;
+				TweenMax.to(hotspots[0].material,1 ,{opacity:1});
+				TweenMax.to(hotspots[1].material,1 ,{opacity:1});
+				TweenMax.to(hotspots[2].material,1 ,{opacity:1});
+				TweenMax.to(hotspots[3].material,1 ,{opacity:1});
+				TweenMax.to(hotspots[4].material,1 ,{opacity:1});
+				objOpacity();
+				// document.addEventListener( 'mousemove', onMouseMove, false );	
+				toolTipBox(objName);
+				selectedObjects = [];
+			}else if (pipesActivated && coverClciked) {
+				hidehotSpots = true;
+				TweenMax.to(spriteArr[0].material,1 ,{opacity:0});
+				TweenMax.to(spriteArr[1].material,1 ,{opacity:0});
+				TweenMax.to(spriteArr[2].material,1 ,{opacity:0});
+			}else if (pipesActivated && coverClciked == false) {
+				hidehotSpots = false;
+				TweenMax.to(spriteArr[0].material,1 ,{opacity:1});
+				TweenMax.to(spriteArr[1].material,1 ,{opacity:1});
+				TweenMax.to(spriteArr[2].material,1 ,{opacity:1});
+			};
+		}
+
+		function killScroll() {
+			previousActive = false;
+			nextActive = false;
+		//	$(".tester").removeClass("active");
+		//	fadeOutMouse(0);
+
+		//	TweenMax.set(".scrollTest", {position:"fixed"});
+		//	detectScroll = false;
+		}
+		function resumeScroll() {
+	//		TweenMax.set(".scrollTest", {position:"absolute"});
+		//	detectScroll = true;
+		}
+	
+		function toolTipBox(objName, hotSpotName){
+			toolTip = document.getElementsByClassName("toolTip_Container");
+			TweenMax.set(".modal-background", {display:"block"});
+
+			if (hidehotSpots == false  && hotspotsActivated && !pipesActivated) {
+				// hidehotSpots = false;
+			
+				
+				toolTipBoxHide();
+				TweenMax.to(origSceneContent, 0.5 ,{ opacity:1, ease:Linear.easeIn});
+
+
+			}else if(pipesActivated && coverClciked && hotspotsActivated == false){
+
+				if(objName == 'leftCover'  || objName == 'bottomCover' || objName == 'rightCover') {
+					// if it is one of the pipe hotspots, pause the timeline
+					killScroll();
+					TweenMax.to("." + objName, tooltipFadeSpeed,{ opacity:1, delay:tooltipFadeSpeed, ease:Linear.easeIn});
+					TweenMax.to(origSceneContent, 0.5 ,{ opacity:0, ease:Linear.easeIn});
+					console.log('coverClciked true' );
+				}
+
+			} else if (pipesActivated && coverClciked == false) {
+				console.log('coverClciked false' );
+					TweenMax.to(".toolTip_Container", 0.5 ,{opacity:0, ease:Linear.easeIn}, "-=.5");
+					TweenMax.to(origSceneContent, 0.5 ,{opacity:1, ease:Linear.easeIn});
+					TweenMax.to(hotspotsMaterial, 0 ,{rotation:0});
+					nextPrevious(true, true, 500);
+					outlinePass.selectedObjects = [];
+
+			} else if(coverClciked && hotspotsActivated == false){
+				// TweenMax.to(".",0.5 ,{opacity:0, ease:Linear.easeIn});
+				TweenMax.to(origSceneContent, 0.5 ,{opacity:1, ease:Linear.easeIn});
+					toolTipBoxHide();
+
+
+			} else if(hotspotsActivated){
+				document.removeEventListener( 'mousemove', onMouseMove, false );
+				
+				hotspotsClicked = true;
+
+				if(objName == 'rightCollet' || objName == 'bottomCollet' || objName == 'leftCollet' || hotSpotName == 'collet' || objName == 'leftCover' || objName == 'rightCover' || objName == 'bottomCover' || hotSpotName == 'cover'  || objName == 'rightOring' || objName == 'leftOring' || objName == 'bottomOring' || hotSpotName == 'oring' || objName == 'rightWasher' || objName == 'leftWasher' || objName == 'bottomWasher' || hotSpotName == 'washer') {
+					killScroll();
+					TweenMax.to(origSceneContent, 0.5 ,{ opacity:0, ease:Linear.easeIn});
+				} 
+
+				if(objName == 'rightCollet' || objName == 'bottomCollet' || objName == 'leftCollet' || hotSpotName == 'collet') {
+					
+					TweenMax.to(".collet",0.8 ,{ opacity:1, ease:Linear.easeIn}, "-=1");
+					TweenMax.to([rightCover.children[0].material, bottomCover.children[0].material, leftCover.children[0].material, rightOring.children[0].material, leftOring.children[0].material, bottomOring.children[0].material, rightWasher.children[0].material, leftWasher.children[0].material, bottomWasher.children[0].material, teeBody.children[0].material], 1, {opacity:0.15, ease:Power2.easeOut});
+
+				} else if(objName == 'leftCover' || objName == 'rightCover' || objName == 'bottomCover' || hotSpotName == 'cover') {
+
+					TweenMax.to(".cover",0.8 ,{ opacity:1, ease:Linear.easeIn});
+					TweenMax.to([rightOring.children[0].material, leftOring.children[0].material, bottomOring.children[0].material, rightWasher.children[0].material, leftWasher.children[0].material, bottomWasher.children[0].material, teeBody.children[0].material,  rightCollet.children[0].material,  leftCollet.children[0].material, bottomCollet.children[0].material], 1, {opacity:0.15, ease:Power2.easeOut});
+
+
+				} else if(objName == 'rightOring' || objName == 'leftOring' || objName == 'bottomOring' || hotSpotName == 'oring') {
+				
+					TweenMax.to(".oring",0.8 ,{ opacity:1, ease:Linear.easeIn});
+					TweenMax.to([rightCover.children[0].material, bottomCover.children[0].material, leftCover.children[0].material, rightWasher.children[0].material, leftWasher.children[0].material, bottomWasher.children[0].material, teeBody.children[0].material,  rightCollet.children[0].material,  leftCollet.children[0].material, bottomCollet.children[0].material], 1, {opacity:0.15, ease:Power2.easeOut});
+
+				} else if(objName == 'rightWasher' || objName == 'leftWasher' || objName == 'bottomWasher' || hotSpotName == 'washer') {
+						
+					TweenMax.to(".washer",0.8 ,{ opacity:1, ease:Linear.easeIn});
+					TweenMax.to([rightCover.children[0].material, bottomCover.children[0].material, leftCover.children[0].material, rightOring.children[0].material, leftOring.children[0].material, bottomOring.children[0].material, teeBody.children[0].material,  rightCollet.children[0].material,  leftCollet.children[0].material, bottomCollet.children[0].material], 1, {opacity:0.15, ease:Power2.easeOut});
+
+				} 
+
+			} else{
+				hotspotsClicked = false;
+				TweenMax.to(origSceneContent, 0.5 ,{opacity:1, top:1, ease:Linear.easeIn});
+				toolTipBoxHide();
+
+
+			}
+				     
+		}
+
+		function coverClickModalClose(objName){
+				var eventTargetClass = event.target.classList;
+				console.log('coverClciked more',coverClciked);
+				if (eventTargetClass[0] != 'tester') {
+					console.log(eventTargetClass)
+					
+					// nextPrevious(true, true, 1500);
+
+				};
+				coverClciked = false;
+				hidehotSpots = false;
+				resumeScroll();
+				TweenMax.to(origSceneContent, 0.5 ,{ opacity:1, ease:Linear.easeIn});
+				nextPrevious(true, true, 1500);
+				toolTipBox(objName);	
+				hotspotsHideTrigger(objName);
+				TweenMax.to([pipeGroup.children[1].material,pipeGroup.children[0].material, pipeGroup.children[2].material],0.8, {opacity:1}, "-=.1")
+
+				TweenMax.to(bottomCover.children[0].material, 1, {opacity:1, ease:Power2.easeInOut}, "-=1");
+				TweenMax.to(bottomCover.children[0].rotation, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+				TweenMax.to(leftCover.children[0].rotation, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+				TweenMax.to(rightCover.children[0].rotation, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+				TweenMax.to(teeBody.children[0].material, 1, {opacity:1,depthTest:false, ease:Power2.easeInOut}, "-=1");
+				TweenMax.to(bottomCollet.children[0].material, 1, {opacity:1,depthTest:false, ease:Power2.easeInOut}, "-=1");
+
+		}
+		
+		function onCoverClick (event){
+
+
+			event.preventDefault();
+			setUpSelectableState(event);
+
+			var intersects = raycaster.intersectObjects(scene.selectable, true );
+				
+			if ( intersects.length > 0) {
+				selectedObject = intersects[0].object;
+				var hotSpotName = selectedObject.name;
+				var objName = intersects[0].object.parent.name;
+
+				
+				if ( coverClciked == false) {
+
+				
+						coverClciked = true;
+						toolTipBox(objName);	
+						hotspotsHideTrigger();
+						
+				
+					if(objName == 'leftCover') {
+
+						
+						TweenMax.to([pipeGroup.children[1].material,pipeGroup.children[0].material, pipeGroup.children[2].material],0.8, {opacity:0}, "-=.1")
+							
+						TweenMax.to(selectedObject.rotation, 1, {x:1.58, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+						TweenMax.to(rightCover.children[0].rotation, 1, {x:1.58, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+						TweenMax.to(bottomCover.children[0].rotation, 1, {x:1.58, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+
+
+						TweenMax.to(selectedObject.rotation, 1, {x:1.58, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+						TweenMax.to(rightCover.children[0].rotation, 1, {x:1.58, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+						TweenMax.to(bottomCover.children[0].rotation, 1, {x:1.58, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+						TweenMax.to(teeBody.children[0].material, 1, {opacity:1,depthTest:false, ease:Power2.easeInOut}, "-=1");
+						TweenMax.to(bottomCollet.children[0].material, 1, {opacity:1,depthTest:false, ease:Power2.easeInOut}, "-=1"); 
+
+
+					}else if(objName == 'bottomCover') {
+
+						bottomCover.children[0].material.transparent = true;
+						teeBody.children[0].material.transparent = true;
+
+						TweenMax.to(leftCover.children[0].rotation, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+						TweenMax.to(rightCover.children[0].rotation, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+
+						TweenMax.to(teeBody.children[0].material, 1, {opacity:0.5,depthTest:true, ease:Power2.easeInOut}, "-=1");
+						TweenMax.to(selectedObject.material, 1, {opacity:0.3,depthTest:true, ease:Power2.easeInOut}, "-=1");
+
+									
+
+					}else if(objName == 'rightCover') {
+								
+						TweenMax.to(leftCover.children[0].rotation, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+						TweenMax.to(rightCover.children[0].rotation, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+						TweenMax.to(teeBody.children[0].material, 1, {opacity:1,depthTest:false, ease:Power2.easeInOut}, "-=1");
+						TweenMax.to(bottomCollet.children[0].material, 1, {opacity:1,depthTest:false, ease:Power2.easeInOut}, "-=1");
+						TweenMax.to([pipeGroup.children[1].material,pipeGroup.children[0].material, pipeGroup.children[2].material],0.8, {opacity:0}, "-=.1")	
+
+					}
+
+				}else{
+						coverClciked = false;
+						hidehotSpots = false;
+						// resumeScroll();
+						nextPrevious(true, true, 1500);
+						// toolTipBox(objName);	
+						 hotspotsHideTrigger(objName);
+						TweenMax.to("." + objName, tooltipFadeSpeed,{ opacity:0, delay:tooltipFadeSpeed, ease:Linear.easeIn});
+						TweenMax.to([pipeGroup.children[1].material,pipeGroup.children[0].material, pipeGroup.children[2].material],0.8, {opacity:1}, "-=.5")
+						TweenMax.to(origSceneContent, 0.5 ,{ opacity:1, ease:Linear.easeIn}, "-=.5");
+
+						TweenMax.to(bottomCover.children[0].material, 1, {opacity:1, ease:Power2.easeInOut}, "-=1");
+						TweenMax.to(bottomCover.children[0].rotation, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+						TweenMax.to(leftCover.children[0].rotation, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+						TweenMax.to(rightCover.children[0].rotation, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+						TweenMax.to(teeBody.children[0].material, 1, {opacity:1,depthTest:false, ease:Power2.easeInOut}, "-=1");
+						TweenMax.to(bottomCollet.children[0].material, 1, {opacity:1,depthTest:false, ease:Power2.easeInOut}, "-=1");
+						console.log('new else');
+				}
+
+			} else{
+				coverClickModalClose(objName);
+				console.log('old else');
+			}
+			// outlinePass.selectedObjects = selectedObjects;
+
+			// console.log("scene.selectable: ", scene.selectable)
+
+
+		}
+
+
+
+			function onHotSpotClick (event){
+				var intersects = raycaster.intersectObjects(rayCastItems, true );
+					
+				if ( intersects.length > 0 ) {
+					var objName = intersects[0].object.parent.name;
+					selectedObject = intersects[0].object;
+					var hotSpotName = selectedObject.name;
+				
+					hotspotsHideTrigger();
+					toolTipBox(objName,hotSpotName);	
+						
+				}else if(hotspotsActivated) {
+
+					hidehotSpots = true;
+					hotspotsHideTrigger();
+					hotspotTest = true;
+					
+
+				} else  {
+					// setTimeout(function() {
+					// 	previousActive = true
+					// 	nextActive = true;
+					// 	$(".tester").addClass("active");
+					// }, 1500);
+				}
+
+			}
+
+			function onMouseMove( event ) {
+				
+				event.preventDefault();
+				
+
+
+				setUpSelectableState(event);
+				var intersects = raycaster.intersectObjects(scene.selectable, true );
+
+				selectedObjects = [];
+				// setUpSelectableState();
+				// var intersects = raycaster.intersectObjects(scene.selectable, true );
+				// selectedObjects = [];
+				
+				if ( intersects.length > 0 ) {
+					selectedObject = intersects[0].object;
+					// var hotspotTest = selectedObject.parent.name === "hotspots";
+					var hotSpotName = selectedObject.name;
+					if(selectedObject.parent) {
+						var objName = selectedObject.parent.name;
+					} else {
+						var objName = "nothing";
+					}
+					
+					if(hotspotsActivated) {
+						document.body.style.cursor = "pointer";
+
+
+						if(objName == 'rightCollet' || objName == 'bottomCollet' || objName == 'leftCollet' || hotSpotName == 'collet') {
+
+							if (colletHover == false) {
+									
+									hotSpot0TimLine.pause();
+									TweenMax.to(hotspots[0].material,0.8 ,{rotation:Math.PI / 1, ease: Power0.easeNone, repeat:-1});
+
+									TweenMax.to(hotspots[0].scale,0.5, {x:2.7,y:2.7,z:2.7});
+										console.log('collet fire');
+
+							
+
+							
+
+							addSelectedObjects(rightCollet);
+							addSelectedObjects(leftCollet);
+							addSelectedObjects(bottomCollet);
+
+							createOutlinePass();
+
+						
+
+							hotSpot1TimLine.resume();
+							hotSpot2TimLine.resume();
+							hotSpot3TimLine.resume();
+							hotSpot4TimLine.resume();
+							TweenMax.to([hotspots[1].material, hotspots[2].material, hotspots[3].material, hotspots[4].material], 0 ,{rotation:0 });
+
+									colletHover = true;
+									hover = false;
+							}
+						
+							
+						} else if(objName == 'rightCover' || objName == 'leftCover' || objName == 'bottomCover' || hotSpotName == 'cover') {
+							if (hover == false) {
+									
+									console.log('objName',objName);
+									hotSpot3TimLine.pause();
+									TweenMax.to(hotspots[3].scale,0.8, {x:2.7,y:2.7,z:2.7});
+									TweenMax.to(hotspots[3].material,0.5 ,{rotation:Math.PI / 1,ease: Power0.easeNone, repeat:-1});
+									console.log('fire',hover);
+								
+								addSelectedObjects(rightCover);
+								addSelectedObjects(leftCover);
+								addSelectedObjects(bottomCover);
+								
+								createOutlinePass();
+							
+								TweenMax.to([hotspots[0].material, hotspots[1].material, hotspots[2].material, hotspots[4].material], 0 ,{rotation:0 });
+
+								hotSpot0TimLine.resume();
+								hotSpot1TimLine.resume();
+								hotSpot2TimLine.resume();
+								hotSpot4TimLine.resume();
+		console.log('cover');
+							
+								hover = true;
+								colletHover = false;
+							}
+							// }
+						} else if(objName == 'rightOring' || objName == 'leftOring' || objName == 'bottomOring' || hotSpotName == 'oring') {
+							if (hover == false) {
+								hover = true;
+
+								hotSpot2TimLine.pause();
+								TweenMax.to(hotspots[2].material,0.8 ,{rotation:Math.PI / 1, ease: Power0.easeNone, repeat:-1});
+								TweenMax.to(hotspots[2].scale,0.5, {x:2.7,y:2.7,z:2.7});
+							}
+							addSelectedObjects(rightOring);
+							addSelectedObjects(leftOring);
+							addSelectedObjects(bottomOring);
+
+							createOutlinePass();
+							
+
+							hotSpot0TimLine.resume();
+							hotSpot1TimLine.resume();
+							hotSpot3TimLine.resume();
+							hotSpot4TimLine.resume();
+
+							TweenMax.to([hotspots[0].material, hotspots[1].material, hotspots[3].material, hotspots[4].material], 0 ,{rotation:0 });
+							// }
+						} else if(objName == 'rightWasher' || objName == 'leftWasher' || objName == 'bottomWasher' || hotSpotName == 'washer') {
+							if (hover == false) {
+								hover = true;
+
+								hotSpot1TimLine.pause();
+								TweenMax.to(hotspots[1].material,0.8 ,{rotation:Math.PI / 1, ease: Power0.easeNone, repeat:-1});
+								TweenMax.to(hotspots[1].scale,0.5, {x:2.7,y:2.7,z:2.7});
+
+							}
+							addSelectedObjects(rightWasher);
+							addSelectedObjects(leftWasher);
+							addSelectedObjects(bottomWasher);
+
+							createOutlinePass();
+							
+
+							hotSpot0TimLine.resume();
+							hotSpot2TimLine.resume();
+							hotSpot3TimLine.resume();
+							hotSpot4TimLine.resume();
+
+							TweenMax.to([hotspots[0].material, hotspots[2].material, hotspots[3].material, hotspots[4].material], 0 ,{rotation:0 });
+
+						} else{
+								console.log('else');
+							hover = false;
+							colletHover = false;
+							hotSpot0TimLine.resume();
+							hotSpot1TimLine.resume();
+							hotSpot2TimLine.resume();
+							hotSpot3TimLine.resume();
+							hotSpot4TimLine.resume();
+							// document.body.style.cursor = "default";
+
+						}	
+
+					} else if (pipesActivated) {
+						document.body.style.cursor = "pointer";
+						if (!pipesHovered) {
+							if(objName == 'leftCover') { 
+
+								pipesHovered = true;
+								document.body.style.cursor = "pointer";
+								spritePulsing0.pause();
+								if (hover == false) {
+									console.log('spriteArr[0]',spriteArr[0]);
+									hover = true;
+									TweenMax.to(spriteArr[0].material,0.8 ,{rotation:Math.PI / 1, ease:Linear.easeInOut, repeat:-1});
+									TweenMax.to(spriteArr[0].scale,0.5, {x:2.7,y:2.7,z:2.7});
+								}
+								spritePulsing1.resume();
+								spritePulsing2.resume();
+							
+								TweenMax.to(spriteArr[1].material,0 ,{rotation:0 });
+								TweenMax.to(spriteArr[2].material,0 ,{rotation:0});
+
+							} else if(objName == 'bottomCover') { 
+
+								pipesHovered = true;
+								document.body.style.cursor = "pointer";
+								spritePulsing1.pause();
+									if (hover == false) {
+										hover = true;
+										TweenMax.to(spriteArr[1].material,0.8 ,{rotation:Math.PI / 1, ease:Linear.easeInOut, repeat:-1});
+										TweenMax.to(spriteArr[1].scale,0.5, {x:2.7,y:2.7,z:2.7});
+									}
+									spritePulsing0.resume();
+									spritePulsing2.resume();
+									TweenMax.to(spriteArr[0].material,0 ,{rotation:0 });
+									TweenMax.to(spriteArr[2].material,0 ,{rotation:0});
+										
+									
+							}else if(objName == 'rightCover') { 
+
+								pipesHovered = true;
+								document.body.style.cursor = "pointer";
+								spritePulsing2.pause();
+								if (hover == false) {
+									hover = true;
+									TweenMax.to(spriteArr[2].material,0.8 ,{rotation:Math.PI / 1, ease:Linear.easeInOut, repeat:-1});
+									TweenMax.to(spriteArr[2].scale,0.5, {x:2.7,y:2.7,z:2.7});
+								}
+								spritePulsing0.resume();
+								spritePulsing1.resume();
+								TweenMax.to(spriteArr[0].material,0 ,{rotation:0 });
+								TweenMax.to(spriteArr[1].material,0 ,{rotation:0});
+										
+							} else {
+								hover = false;
+								TweenMax.set([spriteArr[0].material, spriteArr[1].material, spriteArr[2].material], {rotation:0 });
+							}
+
+						} 
+							
+					}
+
+			//		}
+						
+
+					} else {
+
+						hover = false;
+						colletHover = false;
+						outlinePass.selectedObjects = [];
+						if (pipesHovered && pipesActivated) {
+							spritePulsing0.resume();
+							spritePulsing1.resume();
+							spritePulsing2.resume();
+							
+							TweenMax.to(spritesMaterial,0 ,{ rotation:0 });
+							pipesHovered = false;
+
+						} else if(hotspotsActivated) {
+						console.log('off');
+						hotSpot0TimLine.resume();
+						hotSpot1TimLine.resume();
+						hotSpot2TimLine.resume();
+						hotSpot3TimLine.resume();
+						hotSpot4TimLine.resume();
+
+						TweenMax.to(hotspotsMaterial, 0 ,{rotation:0});
+
+					}
+							
+					
+					if(pipesActivated || hotspotsActivated) {
+						document.body.style.cursor = "default";
+					}		// createOutlinePass();
+
+				}
+			
+			} // mousemove
+			
+		
+
+//////////////////////// End  hotspots and tooltip interaction ////////////			
+			
+			function createScroll() {
+
+
+
+				function test() {
+					if(scrollStatus == "start") {
+						expandObject();
+						scrollStatus = "end";
+					} else if(scrollStatus == "end") {
+						retractObject();
+						scrollStatus= "start";
+					}
+				}
+				function snap($div, $direction) {
+					// if(!snapper) {
+					
+						if(scrollDirection == $direction) {
+							TweenMax.to("html, body", 1, {scrollTop: $($div).offset().top, ease:Power4.easeOut})
+							//	snapper = true;
+						} 
+						
+					// }
+				}
+				function setStatusPoint($newPoint, $oldPoint) {
+					offsetStatus = (scrollDirection === "down") ? $newPoint : $oldPoint;
+				}
+
+				function startIt() {
+					scrollStatus = "start";
+				}
+				function endIt() {
+					scrollStatus = "end";
+				}
+
+				// build main scene timeline /////////////////////////
+				var theta = -2;
+			    	var myease = Power2.easeInOut;
+				var x = camToSave.position.x;
+				var z = camToSave.position.z;
+                  	var moveX = x * Math.cos(theta) - z * Math.sin(theta);
+                 	 	var moveZ = z * Math.cos(theta) + x * Math.sin(theta);
+
+                 	 	var containerWidth = $("#home-page .container").width();
+                 	 	var offset = $("#home-page .container").offset().left;
+			//	console.log('left',offset);
+
+
+				leftWasher = group.getObjectByName( "leftWasher", true ),
+				bottomWasher = group.getObjectByName( "bottomWasher", true ),
+                		rightWasher = group.getObjectByName( "rightWasher", true ),
+                		rightOring = group.getObjectByName( "rightOring", true ),
+                		bottomOring = group.getObjectByName( "bottomOring", true ),
+                		leftOring = group.getObjectByName( "leftOring", true ),
+                		rightCover = group.getObjectByName( "rightCover", true ),
+                		bottomCover = group.getObjectByName( "bottomCover", true ),
+                		leftCover = group.getObjectByName( "leftCover", true ),
+                		rightCollet = group.getObjectByName( "rightCollet", true ),
+                		bottomCollet = group.getObjectByName( "bottomCollet", true ),
+                		leftCollet = group.getObjectByName( "leftCollet", true );
+                		teeBody = scene.getObjectByName( "teeBody", true );
+                		
+       //         		containerOffsetPipes = !$rootScope.isMobile  || containerWidth > mobileBreakpoint ? -(offset) - (containerWidth / 8) : 0;
+                		containerOffsetPipes = makeMobile ?  0 : -(offset) - (containerWidth / 12);
+				tlScroll1
+					.addPause("scene1")
+					.add("scene1-start", "+=.1")
+					.to("body", .1, {})
+					.add(killControls)
+
+					.fromTo(".first-scene h1", .5,  {autoAlpha:1, y:0, ease: defaultEase }, {autoAlpha:0, y:-25, ease: defaultEase })
+					.fromTo(".first-scene p", .5,  {autoAlpha:1, y:0, ease: defaultEase }, {autoAlpha:0, y:-25, ease: defaultEase }, "-=.4")
+					
+					.set(".first-scene", {display:"none"})
+					.set(".second-scene", {display:"block"})
+
+					.addCallback(setStatusPoint, "-=.3", ["open", "default"])
+					
+					.to("#animation-canvas",1.2, {left: containerOffsetRIghtSide,ease: defaultEase }, "-=.2")
+					.to(camera.position, 1.2, { x:moveX,z:55, ease: defaultEase, onUpdate:function(){ camera.updateProjectionMatrix();camera.lookAt(scene.position)}}, "-=1")
+					
+					
+					
+
+					//obj opened
+					.to(group.rotation, .6, {y: -3.2}, "-=1")
+					.to(group.position, .4, {y: 10}, "-=.5")
+					.to(leftWasher.position, breakspeed, { x:-12, ease:myease,  onUpdate: animateNode, onUpdateParams:[leftWasher]}) 
+					.to(bottomWasher.position, breakspeed, { y:-10, ease:myease,  onUpdate: animateNode, onUpdateParams:[bottomWasher]}, "-=" + breakspeed) 
+					.to(rightWasher.position, breakspeed, { x:12, ease:myease,  onUpdate: animateNode, onUpdateParams:[rightWasher]}, "-=" + breakspeed) 
+					.to(leftOring.position, breakspeed, { x:-10, ease:myease,  onUpdate: animateNode, onUpdateParams:[rightOring]}, "-=" + breakspeed)
+					.to(bottomOring.position, breakspeed, { y:-8.5, ease:myease,  onUpdate: animateNode, onUpdateParams:[bottomOring]}, "-=" + breakspeed)
+					.to(rightOring.position, breakspeed, { x:10, ease:myease,  onUpdate: animateNode, onUpdateParams:[leftOring]}, "-=" + breakspeed)
+					.to(leftCover.position, breakspeed, { x:-17, ease:myease,  onUpdate: animateNode, onUpdateParams:[rightCover]}, "-=" + breakspeed)
+					.to(bottomCover.position, breakspeed, { y:-14, ease:myease,  onUpdate: animateNode, onUpdateParams:[bottomCover]}, "-=" + breakspeed)
+					.to(rightCover.position, breakspeed, { x:17, ease:myease,  onUpdate: animateNode, onUpdateParams:[leftCover]}, "-=" + breakspeed)
+					.to(leftCollet.position, breakspeed, { x:-22, ease:myease,  onUpdate: animateNode, onUpdateParams:[rightCollet]}, "-=" + breakspeed)
+					.to(bottomCollet.position, breakspeed, { y:-21.5 + yPosStart, ease:myease,  onUpdate: animateNode, onUpdateParams:[bottomCollet]}, "-=" + breakspeed)
+					.to(rightCollet.position, breakspeed, { x:22, ease:myease,  onUpdate: animateNode, onUpdateParams:[leftCollet]}, "-=" + breakspeed)
+					
+
+
+					.fromTo(".second-scene h1", .5, {autoAlpha:0, y:25}, {autoAlpha:1, y:0, ease: defaultEase }, "-=.5")
+					.fromTo(".second-scene p", .5, {autoAlpha:0, y:25}, {autoAlpha:1, y:0, ease: defaultEase }, "-=.4")
+
+					.add(activateHotspots, "+=.5")
+					.to([hotspots[0].material, hotspots[1].material, hotspots[2].material, hotspots[3].material, hotspots[4].material], hotspotSpeed, {opacity:1, ease:hotspotEase})
+					
+					
+
+			//		.add()
+					.to("body", .1, {}) // for some reason this ake it so the hotspots can fade out on reverse
+					.add("scene1-finish")
+
+					.addPause("scene2")
+					.to("body", .1, {}) 
+				//	.to("body", 3, {}) 
+					.add("scene2-start")
+
+
+					.to("body", 1, {}) 
+					.to(".second-scene h1", .6, {autoAlpha:0, y:-25, ease: defaultEase }, "+=.2")
+					.to(".second-scene p", .6, {autoAlpha:0, y:-25, ease: defaultEase }, "-=.4")
+					
+
+					
+				
+					.to([hotspots[0].material, hotspots[1].material, hotspots[2].material, hotspots[3].material, hotspots[4].material], hotspotSpeed, {opacity:0, ease:hotspotEase}, "-=1.6")
+					.add(removeHotspots,"-=1.8")
+					
+					//obj closed
+					.to(leftWasher.position, 1, { x:-6, ease:myease,  onUpdate: animateNode, onUpdateParams:[leftWasher]}, "-=1") 
+					.to(bottomWasher.position, 1, { y:-4, ease:myease,  onUpdate: animateNode, onUpdateParams:[bottomWasher]}, "-=1") 
+					.to(rightWasher.position, 1, { x:6, ease:myease,  onUpdate: animateNode, onUpdateParams:[rightWasher]}, "-=1") 
+					.to(leftOring.position, 1, { x:-7, ease:myease,  onUpdate: animateNode, onUpdateParams:[rightOring]}, "-=1")
+					.to(bottomOring.position, 1, { y:-4, ease:myease,  onUpdate: animateNode, onUpdateParams:[bottomOring]}, "-=1")
+					.to(rightOring.position, 1, { x:7, ease:myease,  onUpdate: animateNode, onUpdateParams:[leftOring]}, "-=1")
+					.to(leftCover.position, 1, { x:-7.8, ease:myease,  onUpdate: animateNode, onUpdateParams:[rightCover]}, "-=1")
+					.to(bottomCover.position, 1, { y:-7.8, ease:myease,  onUpdate: animateNode, onUpdateParams:[bottomCover]}, "-=1")
+					.to(rightCover.position, 1, { x:7.8, ease:myease,  onUpdate: animateNode, onUpdateParams:[leftCover]}, "-=1")
+					.to(leftCollet.position, 1, { x:-8.2, ease:myease,  onUpdate: animateNode, onUpdateParams:[rightCollet]}, "-=1")
+					.to(bottomCollet.position, 1, { y:-8.08, ease:myease,  onUpdate: animateNode, onUpdateParams:[bottomCollet]}, "-=1")
+					.to(rightCollet.position, 1, { x:8.2, ease:myease,  onUpdate: animateNode, onUpdateParams:[leftCollet]}, "-=1")
+					// move scene left
+					.set(".second-scene", {display:"none"})
+					
+					
+					
+					.to(group.position, pipeSpeed, {y: 0}, "-=.9")
+					.to(group.rotation, pipeSpeed, {x:0, y:-6.28, z:-1.58, ease: defaultEase}, "-=" + pipeSpeed)
+					.to(group.scale, pipeSpeed, {x:1.5, y:1.5, z:1.5, ease: defaultEase}, "-=" + pipeSpeed)
+					.addCallback(setStatusPoint, "-=" + pipeSpeed, ["pipes", "open"])
+					.to("#animation-canvas", pipeSpeed, {left:containerOffsetPipes, rotation:canvasRotation, transformOrigin:"center center", ease: defaultEase }, "-=" + pipeSpeed)
+					.to(camera.position, pipeSpeed, { x:0,z:60, ease: defaultEase, onUpdate:function(){ camera.updateProjectionMatrix();camera.lookAt(scene.position)}}, "-=" + pipeSpeed)
+
+					.set([pipeGroup.children[1].material,pipeGroup.children[0].material, pipeGroup.children[2].material], {opacity:1}, "-=.2")
+
+					.set(spriteArr[0].position, { y:8.82, ease: Power4.easeInOut})
+					.set(spriteArr[1].position, { x:-8.82, ease: Power4.easeInOut})
+					.set(spriteArr[2].position, { y:-8.82, ease: Power4.easeInOut})
+
+
+					.set(".third-scene", {display:"block"}, "-=1")
+					.fromTo(".third-scene h1", .5, {autoAlpha:0, y:25}, {autoAlpha:1, y:0, ease: defaultEase }, "-=1")
+					.fromTo(".third-scene p", .5, {autoAlpha:0, y:25}, {autoAlpha:1, y:0, ease: defaultEase }, "-=.4")
+
+				
+					.to(pipeGroup.children[0].position, 1, { x:0,y:0,z:0, ease: Power4.easeOut}, "-=.2")
+					.to(pipeGroup.children[1].position, .8, { x:0,y:0,z:0, ease: Power4.easeOut}, "-=.7")
+					.to(pipeGroup.children[2].position, .5, { x:0,y:0, ease: Power4.easeIn}, "-=1.2")
+
+					.to([spriteArr[0].material, spriteArr[1].material,spriteArr[2].material], .3,{opacity:1}, "-=.3") // this turns on all the sprite material
+					
+					.add(spritePulsing)
+					.add(activatePipes)
+					.add(coverClickTest)
+
+					.to("body", .1, {}) // for some reason this ake it so the hotspots can fade out on reverse
+					.add("scene2-finish")
+					.to("body", 1, {}) 
+					.addPause("scene3")
+					.to("body", 1, {}) 
+					.add("scene3-start")
+					.to("body", .1, {})
+					.add(removePipes)
+					.to([spriteArr[0].material, spriteArr[1].material,spriteArr[2].material], .3,{opacity:0})
+
+					.to(".third-scene h1", .6, {autoAlpha:0, y:-25, ease: defaultEase }, "+=.7")
+					.to(".third-scene p", .6, {autoAlpha:0, y:-25, ease: defaultEase }, "-=.4")
+					
+					
+
+
+				
+					.set(engineSprite.position, {z:12})
+					.set(couplerSprite.position, {z:12})
+					///// swipe the pipes /////
+					.to([pipeGroup.children[0].position, pipeGroup.children[1].position, pipeGroup.children[2].position], 1, { x:-30, ease: Power4.easeIn})
+
+					.set(".third-scene", {display:"none"})
+					.set(".fourth-scene", {display:"block"})
+					//// swipe the object group
+					.to(group.position, 1, {x: -30, ease: Power4.easeIn}, "-=1")
+
+					
+					.to("#animation-canvas", .3, {left:containerOffsetDefault, rotation: 0, ease: defaultEase })
+					.fromTo(".fourth-scene h1", .5, {autoAlpha:0, y:25}, {autoAlpha:1, y:0, ease: defaultEase }, "-=.1")
+					.fromTo(".fourth-scene p", .6, {autoAlpha:0, y:25}, {autoAlpha:1, y:0, ease: defaultEase }, "-=.4")
+
+					.to(engineSprite.material, 1, {opacity:1, ease: defaultEase }, "-=.4")
+					.to(engineSprite.position, 1, {y:imageY, ease: defaultEase }, "-=1")
+					.add(finishScene3)
+
+					.to("body", .1, {}) // for some reason this ake it so the hotspots can fade out on reverse
+					
+					.add("scene3-finish")
+					.to("body", .1, {})
+					.addPause("scene4")
+					.to("body", .1, {})
+					.add("scene4-start")
+					.add(startScene4)
+
+
+					.to(".fourth-scene h1", .6, {autoAlpha:0, y:-25, ease: defaultEase }, "+=.1")
+					.to(".fourth-scene p", .6, {autoAlpha:0, y:-25, ease: defaultEase }, "-=.4")
+					.set(".fourth-scene", {display:"none"})
+
+					.to(engineSprite.material, 1, {opacity:0, ease: defaultEase }, "-=.4")
+					.to(engineSprite.position, 1, {y:3, ease: defaultEase }, "-=1")
+
+					
+
+
+					.to("body", .1, {}) // for some reason this ake it so the hotspots can fade out on reverse
+					
+
+					
+					.set(".fifth-scene", {display:"block"})
+					
+					.fromTo(".fifth-scene h1", .6, {autoAlpha:0, y:25}, {autoAlpha:1, y:0, ease: defaultEase })
+					.fromTo(".fifth-scene p", .6, {autoAlpha:0, y:25}, {autoAlpha:1, y:0, ease: defaultEase }, "-=.4")
+					.fromTo(".fifth-scene a", .6, {autoAlpha:0, y:25}, {autoAlpha:1, y:0, ease: defaultEase }, "-=.4")
+
+					.to(couplerSprite.material, 1, {opacity:1, ease: Power4.easeOut }, "-=.4")
+					.to(couplerSprite.position, 1, {y:finalImageY, ease: Power4.easeOut }, "-=1")
+
+					.add(finishScene4)
+					.to("body", .1, {})
+					.add("scene4-finish")
+					.to("body", .1, {})
+					.addPause("scene5")
+
+					
+
+					// .to("#animation-canvas", 1, {y:finalCanvasY, ease: Power4.easeOut}, "-=1")
+
+					
+
+					// .to(".fifth-scene h1", .6, {autoAlpha:1, y:-25, ease: defaultEase },"-=.4")
+					// .to(".fifth-scene p", .6, {autoAlpha:1, y:-25, ease: defaultEase }, "-=.4")
+					// .set(".fifth-scene", {display:"none"})
+
+					// .add(coverClickTest)
+
+					;
+			
+
+				
+
+				function createScene($tween, $triggerElement, $duration, $triggerHook, $offset) {
+				
+					var scene = new ScrollMagic.Scene({
+						triggerElement: $triggerElement, 
+						duration: $duration, 
+						triggerHook: $triggerHook,
+						offset:$offset
+					}).setTween($tween).addTo(scrollController)
+					// .addIndicators({name: "tween css class"});
+				}
+				////////////////////////////////////////////////////// =================
+		//		createScene(tlScroll1, "#trigger1", "300%", 100, 20); 
+                  }
+
+
+   
+			function updateCamera() {
+		    		camera.updateProjectionMatrix();
+		    		camera.lookAt(scene.position);
+		    	}
+
+			function restoreCamera(){
+			//		camToSave.position, camToSave.rotation, camToSave.controlCenter
+			//	TweenMax.fromTo(camera.position,0.5, {x:camera.position.x,y:camera.position.y,z:camera.position.z},{x: camToSave.position.x, y: camToSave.position.y, z: camToSave.position.z }, "-=.5");
+		//	alert("yes")
+				// if(!$rootScope.isMobile) {
+					// TweenMax.set(camera.position, {x: camToSave.position.x, y: camToSave.position.y, z: camToSave.position.z }, "-=.5");
+				//}
+			}
+			function logRenderer() {
+			}
+
+			function killControls() {
+
+				if(scrollDirection === "up") {
+					nextPrevious(true, false, 500);
+					// if(!$rootScope.mobile) {
+					// 	controls.enabled = true;
+					// 	document.body.style.cursor = 'none';
+					// 	setTimeout(function() {
+					// 		TweenMax.set("#tail", {display:"block"});
+					// 	},.1) 
+					// }
+
+				} else {
+
+					//  restore Camera
+					TweenMax.to(camera.position, .3, {x: camToSave.position.x, y: camToSave.position.y, z: camToSave.position.z });
+					if(controls) {
+
+						scrollMessageStatus = "complete";
+						TweenMax.to(".more-holder", .5, {autoAlpha:0})
+						TweenMax.set(".more-holder", {display:"none", delay:.5});
+
+						// if(!$rootScope.mobile) {
+						// 	controls.enabled = false;
+						// 	document.body.style.cursor = 'auto';
+						// 	setTimeout(function() {
+						// 		TweenMax.set("#tail", {display:"none"});
+						// 	},.1)
+						// } 
+					} 
+				}
+				
+			}
+
+			function render() {
+
+                		camera.lookAt( scene.position );
+                		camera.updateMatrixWorld();
+          			renderer.render( scene, camera );
+
+        		}
+
+			function animate() {
+
+	//			controls.target.set(-7, 0, 0);
+
+				render();
+				requestId = requestAnimationFrame( animate );
+					if (hotspotsActivated) {
+								composer.render();
+							};
+				
+
+			}
+			function getOffset() {
+				
+				var windowWidth =  $(window).width(), 
+					containerWidth = $("#info").width(),
+					offset = $("#info").offset().left;
+
+				makeMobile = containerWidth < mobileBreakpoint;
+				containerHeight = containerWidth < mobileBreakpoint ? containerWidth : window.innerHeight;
+
+				containerOffsetDefault = makeMobile ? 0 : "-22%";
+				containerOffsetRightSide = makeMobile ? "-8%" : "12%";
+				containerOffsetPipes = makeMobile ?  0 : -(offset) - (containerWidth / 12);
+			
+
+				finalTextY = makeMobile ? 0 : -65;
+				finalImageY = makeMobile ? 2.8 : 0;
+				finalCanvasY = makeMobile ? -30 : 0;
+				imageY = makeMobile ? 0 : 1;
+				
+				if(offsetStatus === "default") {
+					TweenMax.set("#animation-canvas", {left: containerOffsetDefault});
+				} else if(offsetStatus === "open") {
+					TweenMax.set("#animation-canvas", {left: containerOffsetRightSide});
+				} else if(offsetStatus === "pipes") {
+					TweenMax.set("#animation-canvas", {left: containerOffsetPipes})
+				}
+				
+			}
+			function animateNode(node) {
+				if(typeof node !== "undefined") {
+					node.updateMatrix()
+				}
+			}
+			function onWindowResize() {
+
+				getOffset();
+ 				
+ 				//TweenMax.to("#animation-canvas", pipeSpeed, {left:offset, ease: defaultEase });
+				
+				var width = $("#info").width(), height = window.innerHeight;
+				screenRatio = window.innerWidth / height;
+				console.log("Screen Ratio: ", screenRatio);
+				canvasRotation = makeMobile ? -90 : 0;
+
+
+				//if(makeMobile) {
+					TweenMax.set(".main-footer", {display:"none"});
+				// } else {
+				// //	TweenMax.set(".main-footer", {top:"390vh", zIndex:20, position:"relative", display:"block"});
+				// }
+				console.log("Width: ", width);
+
+				if(width < mobileBreakpoint) { // make it a square if  its less than 800
+					
+					height = width;
+				} else if(screenRatio < 1.1) {
+					height = width / 1.5;
+
+
+					$( "canvas" ).prepend( "<div class='ine'></div>" );
+
+
+				} else {
+					TweenMax.set(".line", {display:"none"});
+				}
+
+				camera.aspect = width / height;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( width, height );
+				effectFXAA.uniforms['resolution'].value.set(1 / width, 1 / height );
+			}
+			function scrollSetup() {
+
+				// $(window).scroll(function() {
+    // 					$(window).scrollTop(0);
+				// });
+
+				// setTimeout(function() {
+				// 	$(window).off('scroll');
+				// 	TweenMax.set(".scrollTest", {position:"absolute"});
+				// }, 2000);
+			}
+			function showMoreButton() {
+				setTimeout(function() {
+					if(scrollMessageStatus !== "complete") {
+       					scrollmessageStatus = "active";
+						TweenMax.set(".more-holder", {display:"block"});
+						TweenMax.to(".more-holder", .5, {autoAlpha:1});
+					}
+				}, 5000)
+			}
+			function getScrollDirection() {
+				// if(!hasScrolled) {  // only want to initialize this once.
+				// 	hasScrolled = true;
+				// 	$(window).on("scroll", function(event){
+				// 		var st = $(this).scrollTop();
+						
+				// 		if (st > lastScrollTop){
+				// 			// downscroll code
+				// 			scrollDirection = "down";
+
+				// 		} else {
+				// 			// upscroll code
+				// 			scrollDirection = "up";
+				// 		}
+				// 		lastScrollTop = st;
+				// 	});
+				// }
+			}
+			function killGetScrollDirection() {
+				// if(hasScrolled) {
+				// 	hasScrolled = false;
+				// 	$(window).off("scroll", function(event){
+				// 		console.log("snapping should be done;")
+				// 	});
+				// }
+			}
+
+			function setUpRayCastItems() {
+				rayCastItems =  [
+					group.getObjectByName( "leftWasher", true ), 
+					group.getObjectByName( "bottomWasher", true ),
+					group.getObjectByName( "rightWasher", true ),
+					group.getObjectByName( "rightOring", true ),
+					group.getObjectByName( "bottomOring", true ),
+					group.getObjectByName( "leftOring", true ),
+					group.getObjectByName( "rightCover", true ),
+					group.getObjectByName( "bottomCover", true ),
+					group.getObjectByName( "leftCover", true ),
+		           		group.getObjectByName( "rightCollet", true ),
+		           		group.getObjectByName( "bottomCollet", true ),
+		           		group.getObjectByName( "leftCollet", true )
+				]
+
+ 
+    				for($i = 0; $i < rayCastItems.length; $i++) {
+    					var item = rayCastItems[$i].children;
+    					$(item).each(function(index, value) {
+    						scene.selectable.push(value);
+    					})
+    				//	
+    				}
+    	
+			}
+			function fadeInMouse($time) {
+				setTimeout(function() {
+					TweenLite.to("#mouse, .instruction-text", .5, {autoAlpha:1});
+					TweenMax.to("#mouse-scroller", 1, {y:15, yoyo:true, repeat:-1})
+				}, $time);
+				
+			}
+
+			function fadeOutMouse($time) {
+				setTimeout(function() {
+					TweenLite.to("#mouse, .instruction-text", .5, {autoAlpha:0});
+				}, $time);
+			}
+
+			function setUpArrays() {
+				// theMaterials = [rightCover.children[0].material, bottomCover.children[0].material, leftCover.children[0].material, rightOring.children[0].material, leftOring.children[0].material, bottomOring.children[0].material, rightWasher.children[0].material, leftWasher.children[0].material, bottomWasher.children[0].material, teeBody.children[0].material,  rightCollet.children[0].material,  leftCollet.children[0].material, bottomCollet.children[0].material
+				// ];
+
+				hotspotsScale = [hotspots[0].scale, hotspots[1].scale, hotspots[2].scale, hotspots[3].scale];
+				hotspotsRotate = [hotspots[0].rotate, hotspots[1].rotate, hotspots[2].rotate, hotspots[3].rotate];
+				hotspotsMaterial = [hotspots[0].material, hotspots[1].material, hotspots[2].material, hotspots[3].material];
+				spritesMaterial = [spriteArr[0].material, spriteArr[1].material, spriteArr[2].material];
+				spritesScale = [spriteArr[0].scale, spriteArr[1].scale, spriteArr[2].scale];
+			}
+
+			function getSetDetails($direction) {
+
+				previousActive = false;
+				nextActive = false;
+				scrollDirection = $direction;
+				thisLabel = tlScroll1.currentLabel();
+				console.log("current label: ", thisLabel);
+			//	fadeOutMouse(0);
+			}
+
+			
+			function mouseFollow() {
+
+				createScroll();
+				setUpRayCastItems();
+				setUpArrays();
+				
+				var details =  tlScroll1.getLabelsArray();
+				nextActive = true;
+			//	fadeInMouse(500);
+
+				function scrollNext() {
+
+					if(nextActive) {
+
+						
+						getSetDetails("down");
+
+						for($i = 1; $i < details.length; $i++) {
+
+							var whichScene = "scene" + $i;
+
+							if(whichScene === thisLabel) {
+								console.log("This One: ", whichScene);
+								tlScroll1.seek('scene' + $i + '-start').play();
+							}
+
+							if($i === 1) {
+								// if(!$rootScope.isMobile) {
+								// 	controls.enabled = false;
+								// }
+							}
+
+						}
+
+					}
+				} // scope.scrollNext /////
+
+				function scrollPrevious() {
+
+					if(previousActive) {
+						
+						getSetDetails("up");
+
+						for($i =1; $i < details.length; $i++) {
+
+							var whichScene = "scene" + $i;
+							if(whichScene === thisLabel) {
+								console.log("This One: ", whichScene);
+								tlScroll1.seek('scene' + ($i - 1) + '-finish').reverse();
+							}
+							
+						}
+						
+						console.log("Current Label: ", thisLabel);
+					}
+
+				}
+
+				detectScroll = true;
+				$('html').on ('mousewheel', function (e) {
+					if(nextActive || previousActive) {
+					//	detectScroll = false;
+						var delta = e.originalEvent.wheelDelta;
+
+	  		 			if (delta < 0) {
+	  		 				console.log("you scrolled down");
+	       					scrollNext(); 
+	   					} else if (delta > 0) {
+	       					console.log('You scrolled up');
+	       						scrollPrevious(); 
+	   					}
+					}
+   					
+				});
+
+				
+				if(!hasDragged) {
+
+					$("#animation-canvas").pressAndHold({
+						holdTime: 300,
+						progressIndicatorRemoveDelay: 900,
+						progressIndicatorColor: "blue",
+						progressIndicatorOpacity: 0.3
+					});
+
+					$("#animation-canvas").on('start.pressAndHold', function(event) {
+						//	console.log("start"); 
+					});
+
+
+					$("#animation-canvas").on('complete.pressAndHold', function(event) {
+						hasDragged =  true;
+						TweenMax.to("#tail .content", fadeSpeed, {autoAlpha:0})
+						tlDraggerFade.play();
+						setTimeout(function() {
+							TweenMax.set("#tail", {width:14,height:17});
+							TweenMax.set("#tail .content", {display:"none"});
+					//		showMoreButton();
+
+						}, 500)
+				
+					});
+
+					$("#animation-canvas").on('end.pressAndHold', function(event) {
+	        				//console.log("END?")
+	        				//document.body.style.cursor = 'auto';
+	        			})
+				}
+				$("#animation-canvas").on("mouseup", function() {
+					tlDraggerFade.reverse();
+					// if(!$rootScope.isMobile) {
+					// 	if(controls) {
+					// 		if(controls.enabled) {
+					// //			restoreCamera();
+					// 		}
+					// 	}
+					// }
+					
+				}); 
+				$(window).on("mouseup touchend", function(){
+					// if(!$rootScope.isMobile) {
+					// 	if(controls) {
+		   //     				if(controls.enabled) {
+		   //     		//			showMoreButton();
+					// //			restoreCamera();
+					// 		}
+					// 	}
+					// }
+    				});
+				
+				$(".container").on('mouseenter', function(event) {
+        				document.body.style.cursor = 'auto';
+        			});
+		
+				$('#tail').addClass("active");
+
+				$("#animation-canvas").on('start.pressAndHold', function(event) {
+					// if(!$rootScope.isMobile) {
+					// 	if(controls) {
+					// 		if(controls.enabled) {
+					// 			document.body.style.cursor = 'none';
+					// 		}
+					// 	}
+					// }
+				});
+				$("animationCanvas").on('mouseup', function() {
+					// if(!$rootScope.isMobile) {
+					// 	if(controls) {
+					// 		if(controls.enabled) {
+					// 			document.body.style.cursor = 'none';
+					// 		}
+					// 	}
+					// }
+				});
+
+				$(document).bind('mousemove', function(e){
+					if ($('#animation-canvas:hover').length > 0) { 
+						// if(!$rootScope.isMobile) {
+						// 	if(controls) {
+						// 		if(controls.enabled) {
+						// 			$('#tail').addClass("active");
+						// 			document.body.style.cursor = 'none';
+						// 		}	
+						// 	}
+							
+						// }
+					} else {
+						$('#tail').removeClass("active");
+						document.body.style.cursor = 'auto';
+					}
+				});
+			}
+
+
+		</script>
+
+	</body>
+</html>

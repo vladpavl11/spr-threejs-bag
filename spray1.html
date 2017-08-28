@@ -1,0 +1,513 @@
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - loaders - OBJ loader</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				font-family: Monospace;
+				background-color: #fff;
+				color: #fff;
+				margin: 0px;
+				overflow: hidden;
+			}
+			#info {
+				color: #fff;
+				position: absolute;
+				top: 10px;
+				width: 100%;
+				text-align: center;
+				z-index: 100;
+				display:block;
+			}
+			#info a, .button { color: #f00; font-weight: bold; text-decoration: underline; cursor: pointer }
+		</style>
+	</head>
+
+	<body>
+		<div id="info">
+		</div>
+
+		<script src="build/three.js"></script>
+
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.2/TweenMax.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.2/TweenLite.min.js"></script>
+		<script src="js/controls/OrbitControls.js"></script>
+		<script type="text/javascript" src="js/loaders/OBJLoader.js"></script>
+		<script type="text/javascript" src="js/loaders/ColladaLoader.js"></script>
+		<script type="text/javascript" src="js/loaders/MTLLoader.js"></script>
+		<script src="js/postprocessing/EffectComposer.js"></script>
+		<script src="js/shaders/BasicShader.js"></script>
+		<script src="js/shaders/CopyShader.js"></script>
+		<script src="js/postprocessing/ShaderPass.js"></script>
+		<script src="js/postprocessing/OutlinePass.js"></script>
+		<script src="js/loaders/MTLLoader.js"></script>
+		<script src="js/postprocessing/RenderPass.js"></script>
+
+		<script src="js/postprocessing/ClearPass.js"></script>
+
+		<script>
+
+			var container;
+
+			var camera, scene,scaleAmount = 180, 
+			renderer, 
+			camToSave = {},
+			coverClciked = false,
+			scaleAmount = 180
+			;
+			var cameraControls;
+
+			var tlScene1 = new TimelineMax({paused:true}).add(addLights);
+			tlScene1.play();
+			var mouseX = 0, mouseY = 0;
+			var bagBmap = new THREE.TextureLoader().load('/Textures/GREEN.png');//// test texture
+			bagBmap.wrapS = THREE.RepeatWrapping;
+			bagBmap.wrapT = THREE.RepeatWrapping;
+			bagBmap.repeat.x = 2;
+			bagBmap.repeat.y = 2;
+
+			var theMaterial = new THREE.MeshPhongMaterial({
+				color      :  new THREE.Color("rgb(0,0,0)"),
+			//	emissive   :  new THREE.Color("rgb(7,3,5)"),
+				specular   :  new THREE.TextureLoader().load('/threejs-assets/textures/specular.png'),
+				shininess  :  8,
+				bumpMap    :  bagBmap,
+				bumpScale  :  0.2,
+				transparent : true,
+			});
+			var selected = new THREE.MeshPhongMaterial({
+				color      :  new THREE.Color("rgb(210,33,112)"),
+			//	emissive   :  new THREE.Color("rgb(7,3,5)"),
+				specular   :  new THREE.TextureLoader().load('/threejs-assets/textures/specular.png'),
+				shininess  :  8,
+				bumpMap    :  bagBmap,
+				bumpScale  :  0.2,
+				transparent : true,
+			});
+			function addLights() {
+				console.log('light added')
+				scene.add( new THREE.AmbientLight( 0x72a1bf ));
+				camera.add( leftSideLight );
+				camera.add( frontLight );
+				camera.add( leftSideBottomLight );
+				camera.add( rightSideBottomLight );
+				camera.add( rightSideLight );
+				camera.add( bottomLight );
+				camera.add( topLight );
+				scene.add( quickLight);
+
+
+				
+				TweenMax.to(quickLight.position, 4, { x:-100,y:0, z:20,ease:Power2.easeOut});
+				TweenMax.to(frontLight, 2, {intensity: 7});
+
+				TweenMax.to(leftSideLight.position, 2, { x:-50,y:15, z:-50, alpha:0.5, ease:Power2.easeInOut});
+				TweenMax.to(leftSideLight, 10, {intensity: 5});
+
+				TweenMax.to(leftSideBottomLight.position, 10, { x:-50,y:-20, z:-100, alpha:0.5, ease:Power2.easeInOut});
+				TweenMax.to(leftSideBottomLight, 10, {intensity: 2});
+
+				TweenMax.to(rightSideBottomLight.position, 10, { x:50,y:-20, z:-100, alpha:0.5, ease:Power2.easeInOut});
+				TweenMax.to(rightSideBottomLight, 10, {intensity: 2});
+
+				TweenMax.to(rightSideLight.position, 10, { x:50,y:15, z:-60, alpha:0.5, ease:Power2.easeInOut});
+				TweenMax.to(rightSideLight, 10, {intensity: 6});
+
+				TweenMax.to(bottomLight.position, 10, { x:0,y:-60, z:-50, alpha:0.5, ease:Power2.easeInOut});
+				TweenMax.to(bottomLight, 10, {intensity: 7});
+
+				setTimeout(function(){
+					TweenMax.to(topLight, 13,{intensity:4});
+					TweenMax.to(topLight.position, 5,{ x:0,y:60, z:-80, alpha:0.5, ease:Power2.easeInOut});
+				}, 1000);
+
+			}
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+			var quickLight = new THREE.SpotLight(0x4e81a6, 100, 29,0.8);
+				quickLight.position.set(200,0,20);
+			 	quickLight.rotation.set(0,0,0);
+			 	quickLight.castShadow = true;
+			 	quickLight.name= "QuickLight";
+
+			var frontLight = new THREE.DirectionalLight(0x829298, 0);
+
+			var leftSideLight = new THREE.DirectionalLight(0x829298, 0);
+				leftSideLight.position.set( 0, 0, 0 );
+				leftSideLight.rotation.set(0,-0.1,0); 
+				leftSideLight.castShadow = true;
+				leftSideLight.name = "LeftSideLight"
+				
+			var leftSideBottomLight = new THREE.DirectionalLight(0x829298, 0);
+				leftSideBottomLight.position.set( 0, 0, 0);
+				leftSideBottomLight.rotation.set(0,0,-0.3);
+				leftSideBottomLight.castShadow = true;
+				leftSideBottomLight.name = "LeftSideBottomLight"
+			
+			var rightSideBottomLight = new THREE.DirectionalLight(0x829298, 0);
+				rightSideBottomLight.position.set( 0, 0, 0);
+				rightSideBottomLight.rotation.set(0,0,-0.3);
+				rightSideBottomLight.castShadow = true;
+				rightSideBottomLight.name = "RightSideBottomLight"
+			
+			var rightSideLight = new THREE.DirectionalLight(0x4e81a6, 0);
+				rightSideLight.position.set( 0, 0, 0 );
+				rightSideLight.rotation.set(0,-0.1,0);
+				rightSideLight.castShadow = true;
+				rightSideLight.name = "RightSideLight"
+				
+
+			var bottomLight = new THREE.DirectionalLight(0x4e81a6, 0);
+				bottomLight.position.set( 0, 0, 0 );
+				bottomLight.rotation.set(0,0,0);
+				bottomLight.castShadow = true;
+				leftSideLight.name = "BottomLight"
+				
+			var topLight = new THREE.DirectionalLight(0x4e81a6, 0);
+				topLight.position.set( 0, 0, 0 );
+				topLight.rotation.set(0,0,0);
+				topLight.castShadow = true;
+			setTimeout(function(manager){
+				TweenMax.to(topLight, 13,{intensity:40});
+				TweenMax.to(topLight.position, 5,{ x:0,y:100, z:0});
+				TweenMax.to(topLight.rotation, 5,{ x:-1.6,y:0, z:0});
+			}, 1000);
+
+			var bagMaterial = new THREE.MeshPhongMaterial({
+				color      :  new THREE.Color("rgb(0,0,0)"),
+			//	emissive   :  new THREE.Color("rgb(7,3,5)"),
+				shininess  :  8,
+				bumpMap    :  bagBmap,
+				bumpScale  :  0.2,
+				transparent : true,
+			});
+
+
+			init();
+			animate();
+
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				camera = new THREE.PerspectiveCamera( 1, window.innerWidth / window.innerHeight, 1, 2000 );
+				camera.position.set( -600, 550, 1300 );
+				camera.target = new THREE.Vector3();
+				group = new THREE.Group();
+				raycaster = new THREE.Raycaster();
+				mouse = new THREE.Vector3();
+				scene = new THREE.Scene();
+
+				scene.selectable = [];
+
+
+				renderer = new THREE.WebGLRenderer({alpha:true, antialias: true}); // antialias: false
+
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight);
+				renderer.gammaInput = true;
+				renderer.gammaOutput = true;
+				container.appendChild( renderer.domElement );
+
+
+				var controls = new THREE.OrbitControls( camera, renderer.domElement );
+					controls.rotateSpeed = .7;
+					controls.enableZoom = false;
+					controls.enablePan = false;
+
+				//////////////////////////////////////////////////////////////////////////////////////// scene
+
+
+				
+				// var mtlLoader = new THREE.MTLLoader();
+				// mtlLoader.load( "scene.mtl", function( materials ) {
+				//     materials.preload();
+				//     var objLoader = new THREE.OBJLoader();
+				//     objLoader.setMaterials( materials );
+				//     objLoader.load("m.obj", function ( object ) {
+				//         scene.add(object);
+				//     });
+				// });
+				
+
+				//////////////////////////////////////////////////////////////////////////////// LOAD OBJECTS !!!!!! //////////////////
+				var newBag = new THREE.OBJLoader();
+				newBag.load( 'new1.obj', function ( object ) {
+
+					object.traverse( function ( child ) {
+	                             	if ( child instanceof THREE.Mesh ) {
+							child.material = bagMaterial;
+							child.material.needsUpdate = true;
+                                 	}
+                             });
+				
+					object.rotation.x = 2.92;
+					object.position.x = 0;
+
+					object.rotation.y = -3.10;
+					object.position.y = 0;
+
+					object.rotation.z = 3.08;
+					object.position.z = 0;
+
+					object.name = "newBag";
+					scene.add( object);
+
+						// var arr = [];	
+						// object.traverse( function ( child ) {
+			   //                     	if ( child instanceof THREE.Mesh ) {
+															
+						// 		child.material = bagMaterial;
+						// 		child.material.needsUpdate = true;
+							
+						// 		for (var i = 0; i <= 2; i++) {
+						// 		 	arr.push(object);
+						// 			arr[i].scale.set(scaleAmount, scaleAmount, scaleAmount);
+						// 		}
+			   //                      }
+			   //                });
+									
+						// arr[0].rotation.x = 0;
+						// arr[0].position.x = -7;
+
+						// arr[0].rotation.y = -1.565;
+						// arr[0].position.y = 0;
+
+						// arr[0].rotation.z = 0;
+						// arr[0].position.z = 0;
+						// arr[0].name = 'leftOring';
+						// group.add( arr[0].clone());
+
+						// arr[1].rotation.x = -1.55;
+						// arr[1].position.x = 0.1;
+
+						// arr[1].rotation.y = 0;
+						// arr[1].position.y = -4;
+
+						// arr[1].rotation.z = -10;
+						// arr[1].position.z = 0;
+						// arr[1].name = 'bottomOring';
+						// group.add( arr[1].clone() );
+
+						// arr[2].rotation.x = 0;
+						// arr[2].position.x = 7;
+
+						// arr[2].rotation.y = 1.565;
+						// arr[2].position.y = 0;
+
+						// arr[2].rotation.z = 0;
+						// arr[2].position.z = 0;
+
+						// arr[2].name = 'rightOring';
+						// group.add( arr[2]);
+
+
+
+
+
+
+
+
+				});
+
+
+
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+				// CONTROLS
+				camera.aspect = window.innerWidth / window.innerHeight;
+				cameraControls = new THREE.OrbitControls( camera, renderer.domElement );
+				cameraControls.addEventListener( 'change', render );
+				// scene itself
+				scene.add( group );
+				scene.add(camera);
+				window.scene = scene;
+
+				/////////////////////////////////////////////// Composer Effects //////////////////////////////////////////////////////////////////////////////////////
+
+				composer = new THREE.EffectComposer( renderer );
+				renderPass = new THREE.RenderPass( scene, camera );
+				composer.addPass( renderPass );
+
+				outlinePass = new THREE.OutlinePass( new THREE.Vector2(window.innerWidth, window.innerHeight), scene.children[10], camera);
+					// renderer = new THREE.WebGLRenderer( {  alpha:true } );
+				composer.addPass( outlinePass );
+				
+
+				effectFXAA = new THREE.ShaderPass(THREE.FXAAShader);
+				 // effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight );
+				effectFXAA.renderToScreen = true;
+				composer.addPass( effectFXAA );
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				
+				window.scene = scene;// need it for three js debug
+
+
+				//console.log("Scene", scene);
+				animate();
+				window.addEventListener( 'resize', onWindowResize, false );
+		
+			///// restore to original
+				camToSave.position = camera.position.clone();
+				camToSave.rotation = camera.rotation.clone();
+
+				if(controls) {
+					camToSave.controlCenter = controls.target.clone();
+				}
+				console.log('test end');
+								// document.addEventListener( 'mousemove', onMouseMove, false );
+								document.addEventListener( 'click', onCoverClick, false );
+
+
+
+
+
+
+
+			} // end init
+
+				function setUpSelectableState(event) {
+					var canvas = document.getElementById("info");
+	    				var rect = canvas.getBoundingClientRect();
+					mouse.x = ( (event.clientX - rect.left) / renderer.domElement.clientWidth ) * 2 - 1;
+					mouse.y = - ( (event.clientY - rect.top) / renderer.domElement.clientHeight ) * 2 + 1;
+					mouse.z = .5;
+					raycaster.setFromCamera( mouse, camera );
+				}
+
+
+				function onCoverClick (event){
+
+
+						event.preventDefault();
+						setUpSelectableState(event);
+
+						var intersects = raycaster.intersectObjects(scene.children, true);
+							
+						if ( intersects.length > 0) {
+							selectedObject = intersects[0].object;
+							console.log(selectedObject);
+							var objName = intersects[0].object.parent.name;
+
+							
+							if ( coverClciked == false) {
+							
+									coverClciked = true;
+								
+									TweenMax.to(selectedObject.position, 1, {x:0, y:0,z:20, ease:Power2.easeInOut}, "-=1");
+									console.log(selectedObject.name);
+								if(selectedObject.name == 'frnt_1') {
+									selectedObject.material = selected;
+									TweenMax.to(selectedObject.material.color, 1, {b:22, g:0,r:0, ease:Power2.easeInOut}, "-=1");
+									console.log('thats it');
+								}
+
+
+
+
+
+
+
+									
+
+							}else{
+								 	TweenMax.to(selectedObject.position, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+									coverClciked = false;
+									selectedObject.material = theMaterial;
+									TweenMax.to(selectedObject.material.color, 1, {b:0, g:0,r:0, ease:Power2.easeInOut}, "-=1");
+									
+							}
+
+						} else{
+							console.log('old else');
+							TweenMax.to(selectedObject.position, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+							selectedObject.material = theMaterial;
+									TweenMax.to(selectedObject.material.color, 1, {b:0, g:0,r:0, ease:Power2.easeInOut}, "-=1");
+						}
+						// outlinePass.selectedObjects = selectedObjects;
+
+						// console.log("scene.selectable: ", scene.selectable)
+
+
+					}
+
+				function onMouseMove( event ) {
+						console.log(raycaster);
+						event.preventDefault();
+
+						setUpSelectableState(event);
+						var intersects = raycaster.intersectObjects(scene.selectable, true );
+
+						selectedObjects = [];
+						// setUpSelectableState();
+						// var intersects = raycaster.intersectObjects(scene.selectable, true );
+						// selectedObjects = [];
+						console.log(selectedObjects);
+						if ( intersects.length > 0 ) {
+							selectedObject = intersects[0].object;
+							// var hotspotTest = selectedObject.parent.name === "hotspots";
+							console.log("selectedObject.parent.name"+selectedObject.parent.name);
+							// var hotSpotName = selectedObject.name;
+							// if(selectedObject.parent) {
+							// 	var objName = selectedObject.parent.name;
+							// } else {
+							// 	var objName = "nothing";
+							// }
+							
+
+						}
+			
+				} // mousemove
+
+			function updateCamera() {
+		    		camera.updateProjectionMatrix();
+		    		camera.lookAt(scene.position);
+		    	}
+
+			function onWindowResize() {
+
+				windowHalfX = window.innerWidth / 2;
+				windowHalfY = window.innerHeight / 2;
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+		
+
+			//
+
+			
+			function animate() {
+
+	//			controls.target.set(-7, 0, 0);
+
+				render();
+				requestId = requestAnimationFrame( animate );
+				
+
+			}
+
+				function render() {
+
+                		camera.lookAt( scene.position );
+                		camera.updateMatrixWorld();
+          			renderer.render( scene, camera );
+
+        		}
+
+		</script>
+
+	</body>
+</html>
