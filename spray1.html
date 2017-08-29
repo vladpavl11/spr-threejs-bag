@@ -54,14 +54,12 @@
 
 			var camera, scene,scaleAmount = 180, 
 			renderer, 
+			rayCastItems = [],
 			camToSave = {},
 			coverClciked = false,
-			scaleAmount = 180
-			;
-			var cameraControls;
+			scaleAmount = 180;
 
-			var tlScene1 = new TimelineMax({paused:true}).add(addLights);
-			tlScene1.play();
+			
 			var mouseX = 0, mouseY = 0;
 			var bagBmap = new THREE.TextureLoader().load('/Textures/GREEN.png');//// test texture
 			bagBmap.wrapS = THREE.RepeatWrapping;
@@ -87,6 +85,13 @@
 				bumpScale  :  0.2,
 				transparent : true,
 			});
+
+			var tlScene1 = new TimelineMax({paused:true})
+			.add(addLights);
+			tlScene1.play();
+
+
+
 			function addLights() {
 				console.log('light added')
 				scene.add( new THREE.AmbientLight( 0x72a1bf ));
@@ -125,6 +130,8 @@
 				}, 1000);
 
 			}
+			
+
 			var windowHalfX = window.innerWidth / 2;
 			var windowHalfY = window.innerHeight / 2;
 
@@ -257,7 +264,7 @@
 					object.position.z = 0;
 
 					object.name = "newBag";
-					scene.add( object);
+						scene.add( object );
 
 						// var arr = [];	
 						// object.traverse( function ( child ) {
@@ -312,8 +319,8 @@
 
 
 
-
-
+						return object;
+							
 				});
 
 
@@ -321,15 +328,10 @@
 
 				window.addEventListener( 'resize', onWindowResize, false );
 
-				// CONTROLS
-				camera.aspect = window.innerWidth / window.innerHeight;
-				cameraControls = new THREE.OrbitControls( camera, renderer.domElement );
-				cameraControls.addEventListener( 'change', render );
-				// scene itself
-				scene.add( group );
+				
+			 // scene.add( group );
 				scene.add(camera);
 				window.scene = scene;
-
 				/////////////////////////////////////////////// Composer Effects //////////////////////////////////////////////////////////////////////////////////////
 
 				composer = new THREE.EffectComposer( renderer );
@@ -351,7 +353,8 @@
 				window.scene = scene;// need it for three js debug
 
 
-				//console.log("Scene", scene);
+				console.log("Scene", scene);
+				console.log('camera ', camera);
 				animate();
 				window.addEventListener( 'resize', onWindowResize, false );
 		
@@ -368,11 +371,33 @@
 
 
 
-
-
-
+								
 
 			} // end init
+
+
+
+
+			var mainObject = scene.getObjectByName( "newBag", true )
+				function intro(group){
+
+					var theta = -2;
+			    	var myease = Power2.easeInOut;
+					var x = camToSave.position.x;
+					var z = camToSave.position.z;
+                  	var moveX = x * Math.cos(theta) - z * Math.sin(theta);
+                 	 	var moveZ = z * Math.cos(theta) + x * Math.sin(theta);
+
+
+
+
+
+					var intersects = raycaster.intersectObjects(scene.children, true);
+					var mainObject = scene.getObjectByName( "newBag", true )
+					console.log('2222'+intersects);
+					TweenMax.to(camera.position, 1.2, { x:moveX,z:55, ease:Power2.easeInOut, onUpdate:function(){ camera.updateProjectionMatrix();camera.lookAt(scene.position)}}, "-=1")
+
+				}
 
 				function setUpSelectableState(event) {
 					var canvas = document.getElementById("info");
@@ -384,57 +409,61 @@
 				}
 
 
-				function onCoverClick (event){
 
+
+
+				function onCoverClick (event){
+									intro();
 
 						event.preventDefault();
 						setUpSelectableState(event);
 
 						var intersects = raycaster.intersectObjects(scene.children, true);
-							
-						if ( intersects.length > 0) {
-							selectedObject = intersects[0].object;
-							console.log(selectedObject);
-							var objName = intersects[0].object.parent.name;
-
-							
-							if ( coverClciked == false) {
-							
-									coverClciked = true;
-								
-									TweenMax.to(selectedObject.position, 1, {x:0, y:0,z:20, ease:Power2.easeInOut}, "-=1");
-									console.log(selectedObject.name);
-								if(selectedObject.name == 'frnt_1') {
-									selectedObject.material = selected;
-									TweenMax.to(selectedObject.material.color, 1, {b:22, g:0,r:0, ease:Power2.easeInOut}, "-=1");
-									console.log('thats it');
-								}
-
-
-
-
-
-
-
+						selectedObject = intersects[0].object;
+						console.log(selectedObject);
+						var objName = intersects[0].object.parent.name;
+						if(selectedObject.name == 'frnt_1') {
+								if ( intersects.length > 0) {
 									
 
-							}else{
-								 	TweenMax.to(selectedObject.position, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
-									coverClciked = false;
+									
+									if ( coverClciked == false) {
+									
+											coverClciked = true;
+										
+											// TweenMax.to(selectedObject.position, 1, {x:0, y:0,z:20, ease:Power2.easeInOut}, "-=1");
+											// console.log(selectedObject.name);
+									
+											selectedObject.material = selected;
+											TweenMax.to(selectedObject.material.color, 1, {b:22, g:0,r:0, ease:Power2.easeInOut}, "-=1");
+											console.log('thats it');
+									
+
+
+
+
+
+
+
+											
+
+									}else{
+										 	// TweenMax.to(selectedObject.position, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+											coverClciked = false;
+											selectedObject.material = theMaterial;
+											TweenMax.to(selectedObject.material.color, 1, {b:0, g:0,r:0, ease:Power2.easeInOut}, "-=1");
+											
+									}
+
+								} else{
+									// TweenMax.to(selectedObject.position, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
 									selectedObject.material = theMaterial;
-									TweenMax.to(selectedObject.material.color, 1, {b:0, g:0,r:0, ease:Power2.easeInOut}, "-=1");
-									
-							}
+											TweenMax.to(selectedObject.material.color, 1, {b:0, g:0,r:0, ease:Power2.easeInOut}, "-=1");
+								}
+								// outlinePass.selectedObjects = selectedObjects;
 
-						} else{
-							console.log('old else');
-							TweenMax.to(selectedObject.position, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
-							selectedObject.material = theMaterial;
-									TweenMax.to(selectedObject.material.color, 1, {b:0, g:0,r:0, ease:Power2.easeInOut}, "-=1");
+								// console.log("scene.selectable: ", scene.selectable)
 						}
-						// outlinePass.selectedObjects = selectedObjects;
-
-						// console.log("scene.selectable: ", scene.selectable)
 
 
 					}
