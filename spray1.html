@@ -24,6 +24,7 @@
 			}
 			#svg {
 			  margin: 10px;
+			  visibility: hidden;
 			}
 			.stroke1 {
 			    stroke-width: 1px;
@@ -158,7 +159,9 @@
 			controls,
 			rayCastItems = [],
 			camToSave = {},
+			selectedObjects = [],
 			tl = new TimelineLite({repeat:-1}),
+			introTl = new TimelineMax({paused:true}),
 			coverClciked = false,
 			scaleAmount = 180;
 
@@ -190,15 +193,14 @@
 			});
 
 			var tlScene1 = new TimelineMax({paused:true})
-			.add(addLights)
-			.add(intro);
+			.add(addLights);
 			tlScene1.play();
 
 
 
 			function addLights() {
 				console.log('light added')
-				scene.add( new THREE.AmbientLight( 0x72a1bf ));
+				// scene.add( new THREE.AmbientLight( 0x72a1bf ));
 				camera.add( leftSideLight );
 				camera.add( frontLight );
 				camera.add( leftSideBottomLight );
@@ -206,7 +208,7 @@
 				camera.add( rightSideLight );
 				camera.add( bottomLight );
 				camera.add( topLight );
-				scene.add( quickLight);
+				// scene.add( quickLight);
 
 
 				
@@ -300,8 +302,8 @@
 			/////////////////// Loading Animation And Counter//////////////////////
 
 			function progressCounter(progress){
-				tl.play();
-				
+				// tl.play();
+					
 				// //animate the plugin text first, drawing to 100%
 				// tl.fromTo(".stroke1", 8, {drawSVG:0}, {drawSVG:"102%"})
 				// .fromTo(".stroke2", 6, {drawSVG:0}, {drawSVG:"102%"}, "-=7")
@@ -310,6 +312,7 @@
 				
 				// TweenMax.to($('.count'), 4, {opacity:0});
 				 $('.count').text(progress + '%');
+
 				TweenMax.to($('.loading'), 0.4, {opacity:0, yoyo:true,repeat:-1});
 				TweenMax.staggerFrom(".stroke1", 2, {drawSVG:0}, 0.1);
 				// 	tl.fromTo(".stroke1", 8, {drawSVG:0}, {drawSVG:"102%"})
@@ -318,12 +321,12 @@
 				 if (progress == '100') {
 				 	TweenMax.to($('.count'), 4, {opacity:0,delay:1});
 				 	console.log('animationa loaded');
+				 	introTl.play();
 					 	setTimeout(function(){
-							
 							// $('.bgImg').animate({ opacity: 1 }, { duration: 2000 });
 							TweenMax.to($('.loading-container'), 0.5, {opacity:0});
 							TweenMax.set(".loading-container", {display:"none"});
-
+							intro();
 						}, 2000);
 						
 				 }else{
@@ -364,8 +367,10 @@
 
 			init();
 			animate();
+			mmm = group.getObjectByName( "newBag", true );
 
-
+			console.log('testtest', mmm);
+			
 			function init() {
 
 				container = document.createElement( 'div' );
@@ -417,13 +422,13 @@
 				//////////////////////////////////////////////////////////////////////////////// LOAD OBJECTS !!!!!! //////////////////
 				var newBag = new THREE.OBJLoader(manager);
 				newBag.load( 'new1.obj', function ( object ) {
-
-					object.traverse( function ( child ) {
-	                             	if ( child instanceof THREE.Mesh ) {
-							child.material = bagMaterial;
-							child.material.needsUpdate = true;
-                                 	}
-                             });
+					var arr = [];	
+						object.traverse( function ( child ) {
+		                             	if ( child instanceof THREE.Mesh ) {
+								child.material = bagMaterial;
+								child.material.needsUpdate = true;
+	                                 	}
+	                             });
 				
 					object.rotation.x = 2.92;
 					object.position.x = 0;
@@ -435,7 +440,8 @@
 					object.position.z = 0;
 
 					object.name = "newBag";
-						scene.add( object );
+					//scene.add( object );
+				group.add( object );
 
 						// var arr = [];	
 						// object.traverse( function ( child ) {
@@ -491,16 +497,14 @@
 
 
 						return object;
-							
 				});
-
 
 
 
 				window.addEventListener( 'resize', onWindowResize, false );
 
 				
-			 // scene.add( group );
+			 	scene.add( group );
 				scene.add(camera);
 				window.scene = scene;
 				/////////////////////////////////////////////// Composer Effects //////////////////////////////////////////////////////////////////////////////////////
@@ -509,23 +513,24 @@
 				renderPass = new THREE.RenderPass( scene, camera );
 				composer.addPass( renderPass );
 
-				outlinePass = new THREE.OutlinePass( new THREE.Vector2(window.innerWidth, window.innerHeight), scene.children[10], camera);
-					// renderer = new THREE.WebGLRenderer( {  alpha:true } );
-				composer.addPass( outlinePass );
-				console.log('outlinePass', outlinePass);
+				// outlinePass = new THREE.OutlinePass( new THREE.Vector2(window.innerWidth, window.innerHeight), scene.children[10], camera);
+				// 	// renderer = new THREE.WebGLRenderer( {  alpha:true } );
+				// composer.addPass( outlinePass );
+				// console.log('outlinePass', outlinePass);
 
-				effectFXAA = new THREE.ShaderPass(THREE.FXAAShader);
-				 // effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight );
-				effectFXAA.renderToScreen = true;
-				composer.addPass( effectFXAA );
+				// effectFXAA = new THREE.ShaderPass(THREE.FXAAShader);
+				//  // effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight );
+				// effectFXAA.renderToScreen = true;
+				// composer.addPass( effectFXAA );
 
-				renderer.setSize( window.innerWidth, window.innerHeight );
+				// renderer.setSize( window.innerWidth, window.innerHeight );
 				
-				window.scene = scene;// need it for three js debug
+				// window.scene = scene;// need it for three js debug
 
 
-				console.log("Scene", scene);
-				console.log('camera ', camera);
+				
+
+
 				animate();
 				window.addEventListener( 'resize', onWindowResize, false );
 		
@@ -533,19 +538,57 @@
 				camToSave.position = camera.position.clone();
 				camToSave.rotation = camera.rotation.clone();
 
-				
-				console.log('test end');
-								// document.addEventListener( 'mousemove', onMouseMove, false );
-								document.addEventListener( 'click', onCoverClick, false );
+				document.addEventListener( 'click', onCoverClick, false );
 
-
+								
 
 								
 
 			} // end init
 
+			function addSelectedObjects(object) {
+					selectedObjects.push(object);
+					console.log('object', object);
+			}
+
 
 				function intro(){
+					// console.log('group', group.children.length);
+					//  console.log('scene1', scene.children[0].name);
+// var main = group.getObjectByName( "newBag", true );
+
+ // console.log('scene1', main);
+					// console.log('group', group.children);
+					// console.log('child', scene.children);
+					// for(var obj in scene) {
+					// 	console.log('1', obj.children);
+    	// 				// var mainobject = group[obj];
+    				
+    	// 				// $(mainobject).each(function(index, value) {
+    	// 				// 	// scene.selectable.push(value);
+    	// 				// 	// console.log('scene1', mainobject);
+    	// 				// })
+    	// 			//	
+    	// 			}
+    // 	for (var i = 0; i < scene.children.length; i++) {
+    		
+    		
+    // 		console.log('test2', scene.children[i].children);
+				// if (scene.children[i].children.name == 'newBag') {
+				// 	console.log('fuck');
+				// };
+		  // }	
+		 			mainObj = group.getObjectByName( "newBag", true );
+					for (var i = 0; i < mainObj.children.length; i++) {
+						
+						introTl.to(camera.position, 2, { x:-600,y:550,z:1300, delay:1,ease:myease, onUpdate:function(){ onUpdate:updateCamera}})
+							if (mainObj.children[i].name == 'frnt_1') {
+								console.log('fuck',mainObj.children[i].position);
+								introTl.to(mainObj.children[i].position, 0.1, {z:6.32,yoyo:true, ease:Power2.easeInOut,repeat:1}, "-=1")
+								.pause();
+							}else if (mainObj.children[i].name == 'object_36') {
+							};
+						  }
 
 
 					var theta = -2;
@@ -554,10 +597,31 @@
 					var z = camToSave.position.z;
                   	var moveX = x * Math.cos(theta) - z * Math.sin(theta);
                  	var moveZ = z * Math.cos(theta) + x * Math.sin(theta);
+                 	
 
-					TweenMax.to(camera.position, 2, { x:-600,y:550,z:1300, delay:1,ease:Power2.easeInOut, onUpdate:function(){ onUpdate:updateCamera}}, "-=1")
+					// .to(camera.position, 10, { x:moveX,y:550,z:moveZ,ease:myease, onUpdate:function(){ onUpdate:updateCamera}}, "+=1.5")
+					// introTl.pause()
+					// .to(camera.position, 10, { x:moveX,y:550,z:moveZ,ease:myease, onUpdate:function(){ onUpdate:updateCamera}}, "+=1.5")
+					
 						
 				}
+				// function animation(){
+				// 	mainObj = group.getObjectByName( "newBag", true );
+				// 	for (var i = 0; i < mainObj.children.length; i++) {
+    		
+    		
+				// 				if (mainObj.children[i].name == 'frnt_1') {
+				// 					console.log('fuck');
+				// 					TweenMax.to(mainObj.children[i].material.color, 0.2, {b:0, g:0,r:0,yoyo:true, ease:Power2.easeInOut,repeat:1});
+				// 				}else if (mainObj.children[i].name == 'object_36') {
+				// 					console.log('object_36');
+				// 				};
+				// 		  }
+
+				// }
+    				
+    	
+			
 
 				function setUpSelectableState(event) {
 					var canvas = document.getElementById("info");
@@ -692,7 +756,7 @@
 			}
 
 				function render() {
-
+					
                 		camera.lookAt( scene.position );
                 		camera.updateMatrixWorld();
           			renderer.render( scene, camera );
