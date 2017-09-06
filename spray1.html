@@ -56,6 +56,44 @@
     				margin: 10% auto;
 			}
 			#info a, .button { color: #f00; font-weight: bold; text-decoration: underline; cursor: pointer }
+
+			.modal {
+			  height: 100%;
+			  width: 100%;
+			  position: absolute;
+			}
+			.modal__heading {
+			  color: #fff;
+			  display: block;
+			  text-align: center;
+			  margin: 0;
+			  position: absolute;
+			  top: 0;
+			  right: 0;
+			  left: 0;
+			  opacity: 0;
+			  font-weight: 900;
+			}
+			.modal__body {
+			  height: 200px;
+			  width: 200px;
+			  padding: 1rem;
+			  color: white;
+			  position: absolute;
+				right: 5%;
+			  border-radius: 4px;
+			  margin: 100px auto 0;
+			  opacity: 0;
+			  scale: .7;
+			  display: block;
+			  color: #333;
+			  -webkit-box-shadow: inset 1px 0px 11px 1px rgba(0,0,0,0.75);
+-moz-box-shadow: inset 1px 0px 11px 1px rgba(0,0,0,0.75);
+box-shadow: inset 1px 0px 11px 1px rgba(0,0,0,0.75);
+			}
+
+
+
 		</style>
 	</head>
 
@@ -122,6 +160,15 @@
 						<div class="loading">LOADING</div>
 					</div>
 				</div>
+			</div>	
+			<div id="buttons_materials" class="bwrap"></div>
+			<div class="modal">
+			  <h1 class="modal__heading">Heading</h1>
+			  <div class="modal__body">
+			    <h1>Heading</h1>
+			    <p>Test Content here</p>
+			    <div id="color"></div>
+			  </div>
 			</div>
 		<div id="info">
 		</div>
@@ -146,11 +193,18 @@
 		<script src="js/postprocessing/ShaderPass.js"></script>
 		<script src="js/postprocessing/OutlinePass.js"></script>
 		<script src="js/loaders/MTLLoader.js"></script>
+		<script src="js/loaders/DDSLoader.js"></script>
 		<script src="js/postprocessing/RenderPass.js"></script>
 
 		<script src="js/postprocessing/ClearPass.js"></script>
 
 		<script>
+				
+				
+				// for(var i = 0; i < mlib.length; i++){
+			 //        testFunction;
+			 //    }
+// console.log('mlib.length', mlib.length);
 
 			var container;
 
@@ -161,7 +215,7 @@
 			camToSave = {},
 			selectedObjects = [],
 			tl = new TimelineLite({repeat:-1}),
-			introTl = new TimelineMax({paused:true}),
+			introTl = new TimelineMax(),
 			coverClciked = false,
 			scaleAmount = 180;
 
@@ -176,11 +230,9 @@
 			var theMaterial = new THREE.MeshPhongMaterial({
 				color      :  new THREE.Color("rgb(0,0,0)"),
 			//	emissive   :  new THREE.Color("rgb(7,3,5)"),
-				specular   :  new THREE.TextureLoader().load('/threejs-assets/textures/specular.png'),
 				shininess  :  8,
-				bumpMap    :  bagBmap,
-				bumpScale  :  0.2,
-				transparent : true,
+				combine: THREE.MixOperation,
+				reflectivity: 0.25,
 			});
 			var selected = new THREE.MeshPhongMaterial({
 				color      :  new THREE.Color("rgb(210,33,112)"),
@@ -201,12 +253,12 @@
 			function addLights() {
 				console.log('light added')
 				// scene.add( new THREE.AmbientLight( 0x72a1bf ));
-				camera.add( leftSideLight );
+				// camera.add( leftSideLight );
 				camera.add( frontLight );
-				camera.add( leftSideBottomLight );
-				camera.add( rightSideBottomLight );
-				camera.add( rightSideLight );
-				camera.add( bottomLight );
+				// camera.add( leftSideBottomLight );
+				// camera.add( rightSideBottomLight );
+				// camera.add( rightSideLight );
+				// camera.add( bottomLight );
 				camera.add( topLight );
 				// scene.add( quickLight);
 
@@ -321,13 +373,12 @@
 				 if (progress == '100') {
 				 	TweenMax.to($('.count'), 4, {opacity:0,delay:1});
 				 	console.log('animationa loaded');
-				 	introTl.play();
 					 	setTimeout(function(){
 							// $('.bgImg').animate({ opacity: 1 }, { duration: 2000 });
 							TweenMax.to($('.loading-container'), 0.5, {opacity:0});
 							TweenMax.set(".loading-container", {display:"none"});
-							intro();
-						}, 2000);
+							
+						}, 1000);
 						
 				 }else{
 				 }
@@ -357,7 +408,7 @@
 			manager.onError = function () {
 			};
 			function allItemsLoaded() {
-
+intro();
 			    // 
 			    
 			}
@@ -408,21 +459,44 @@
 
 
 				
-				// var mtlLoader = new THREE.MTLLoader();
-				// mtlLoader.load( "scene.mtl", function( materials ) {
+				// var newBag = new THREE.MTLLoader(manager);
+				// newBag.load( "quilted.mtl", function( materials ) {
 				//     materials.preload();
-				//     var objLoader = new THREE.OBJLoader();
+				//     var objLoader = new THREE.OBJLoader(manager);
 				//     objLoader.setMaterials( materials );
-				//     objLoader.load("m.obj", function ( object ) {
-				//         scene.add(object);
+				//     objLoader.load("1scene.obj", function ( object ) {
+				      
+				// 		scene.add( object );
 				//     });
 				// });
 				
 
+
+				// var onError = function ( xhr ) { };
+
+				// THREE.Loader.Handlers.add( /\.dds$/i, new THREE.DDSLoader() );
+
+				// var mtlLoader = new THREE.MTLLoader(manager);
+				// mtlLoader.setPath( 'male02/' );
+				// mtlLoader.load( 'male02_dds.mtl', function( materials ) {
+
+				// 	materials.preload();
+
+				// 	var objLoader = new THREE.OBJLoader(manager);
+				// 	objLoader.setMaterials( materials );
+				// 	objLoader.setPath( 'male02/' );
+				// 	objLoader.load( 'new1.obj', function ( object ) {
+
+					
+				// 		scene.add( object );
+
+				// 	} );
+
+				// });
+
 				//////////////////////////////////////////////////////////////////////////////// LOAD OBJECTS !!!!!! //////////////////
 				var newBag = new THREE.OBJLoader(manager);
 				newBag.load( 'new1.obj', function ( object ) {
-					var arr = [];	
 						object.traverse( function ( child ) {
 		                             	if ( child instanceof THREE.Mesh ) {
 								child.material = bagMaterial;
@@ -441,61 +515,9 @@
 
 					object.name = "newBag";
 					//scene.add( object );
-				group.add( object );
+					group.add( object );
 
-						// var arr = [];	
-						// object.traverse( function ( child ) {
-			   //                     	if ( child instanceof THREE.Mesh ) {
-															
-						// 		child.material = bagMaterial;
-						// 		child.material.needsUpdate = true;
-							
-						// 		for (var i = 0; i <= 2; i++) {
-						// 		 	arr.push(object);
-						// 			arr[i].scale.set(scaleAmount, scaleAmount, scaleAmount);
-						// 		}
-			   //                      }
-			   //                });
-									
-						// arr[0].rotation.x = 0;
-						// arr[0].position.x = -7;
-
-						// arr[0].rotation.y = -1.565;
-						// arr[0].position.y = 0;
-
-						// arr[0].rotation.z = 0;
-						// arr[0].position.z = 0;
-						// arr[0].name = 'leftOring';
-						// group.add( arr[0].clone());
-
-						// arr[1].rotation.x = -1.55;
-						// arr[1].position.x = 0.1;
-
-						// arr[1].rotation.y = 0;
-						// arr[1].position.y = -4;
-
-						// arr[1].rotation.z = -10;
-						// arr[1].position.z = 0;
-						// arr[1].name = 'bottomOring';
-						// group.add( arr[1].clone() );
-
-						// arr[2].rotation.x = 0;
-						// arr[2].position.x = 7;
-
-						// arr[2].rotation.y = 1.565;
-						// arr[2].position.y = 0;
-
-						// arr[2].rotation.z = 0;
-						// arr[2].position.z = 0;
-
-						// arr[2].name = 'rightOring';
-						// group.add( arr[2]);
-
-
-
-
-
-
+			
 						return object;
 				});
 
@@ -548,47 +570,21 @@
 
 			function addSelectedObjects(object) {
 					selectedObjects.push(object);
-					console.log('object', object);
 			}
-
-
 				function intro(){
-					// console.log('group', group.children.length);
-					//  console.log('scene1', scene.children[0].name);
-// var main = group.getObjectByName( "newBag", true );
-
- // console.log('scene1', main);
-					// console.log('group', group.children);
-					// console.log('child', scene.children);
-					// for(var obj in scene) {
-					// 	console.log('1', obj.children);
-    	// 				// var mainobject = group[obj];
-    				
-    	// 				// $(mainobject).each(function(index, value) {
-    	// 				// 	// scene.selectable.push(value);
-    	// 				// 	// console.log('scene1', mainobject);
-    	// 				// })
-    	// 			//	
-    	// 			}
-    // 	for (var i = 0; i < scene.children.length; i++) {
-    		
-    		
-    // 		console.log('test2', scene.children[i].children);
-				// if (scene.children[i].children.name == 'newBag') {
-				// 	console.log('fuck');
-				// };
-		  // }	
+				
 		 			mainObj = group.getObjectByName( "newBag", true );
-					for (var i = 0; i < mainObj.children.length; i++) {
-						
-						introTl.to(camera.position, 2, { x:-600,y:550,z:1300, delay:1,ease:myease, onUpdate:function(){ onUpdate:updateCamera}})
-							if (mainObj.children[i].name == 'frnt_1') {
-								console.log('fuck',mainObj.children[i].position);
-								introTl.to(mainObj.children[i].position, 0.1, {z:6.32,yoyo:true, ease:Power2.easeInOut,repeat:1}, "-=1")
-								.pause();
-							}else if (mainObj.children[i].name == 'object_36') {
-							};
-						  }
+						console.log('mainObj',mainObj);
+						introTl.to(camera.position, 2,{ x:-600,y:550,z:1300, ease: Back.easeOut.config(1.7)})
+							// .add(frontTop)
+							// .to(mainObj.rotation, 1, {y:3.16,ease: Expo.easeOut,delay:1})
+							// .to(mainObj.scale, 1, {x:1.5,y:1.5,z:1.5,ease: Bounce.easeOut})
+							// .add(frontBottom)
+							// // .add(reset,1.2)
+							// .to(mainObj.rotation, 0.5, {y:-0.52, delay:1.2,ease: Power4.easeOut})
+							// .add(straps)
+							// .to(mainObj.scale, 1, {x:1,y:1,z:1,ease: Bounce.easeOut,delay:1.5})
+							// .to(mainObj.rotation, 1, {y:-3.56,ease: Expo.easeOut,delay:1})
 
 
 					var theta = -2;
@@ -597,31 +593,54 @@
 					var z = camToSave.position.z;
                   	var moveX = x * Math.cos(theta) - z * Math.sin(theta);
                  	var moveZ = z * Math.cos(theta) + x * Math.sin(theta);
-                 	
 
-					// .to(camera.position, 10, { x:moveX,y:550,z:moveZ,ease:myease, onUpdate:function(){ onUpdate:updateCamera}}, "+=1.5")
-					// introTl.pause()
-					// .to(camera.position, 10, { x:moveX,y:550,z:moveZ,ease:myease, onUpdate:function(){ onUpdate:updateCamera}}, "+=1.5")
-					
+				}
+				function reset(){
+						for (var i = 0; i < mainObj.children.length; i++) {
+							mainObj.children[i].material = theMaterial;
+							console.log('reset');
+						}
 						
 				}
-				// function animation(){
-				// 	mainObj = group.getObjectByName( "newBag", true );
-				// 	for (var i = 0; i < mainObj.children.length; i++) {
-    		
-    		
-				// 				if (mainObj.children[i].name == 'frnt_1') {
-				// 					console.log('fuck');
-				// 					TweenMax.to(mainObj.children[i].material.color, 0.2, {b:0, g:0,r:0,yoyo:true, ease:Power2.easeInOut,repeat:1});
-				// 				}else if (mainObj.children[i].name == 'object_36') {
-				// 					console.log('object_36');
-				// 				};
-				// 		  }
-
-				// }
     				
     	
-			
+				function frontTop(){
+					for (var i = 0; i < mainObj.children.length; i++) {
+								mainObj.children[i].material = theMaterial;
+							if (mainObj.children[i].name == 'frnt_1') {
+								mainObj.children[i].material = selected;
+								TweenMax.to(mainObj.children[i].material.color, 0.4, {b:255, g:255,r:255, yoyo:true, repeat:1});
+								TweenMax.to(mainObj.children[i].material.color, 0.4, {ease:Power4.easeInOut,b:0, g:0,r:0});
+
+							}
+					}	
+					
+				}
+				function frontBottom(){
+					for (var i = 0; i < mainObj.children.length; i++) {
+								mainObj.children[i].material = theMaterial;
+							if (mainObj.children[i].name == 'object_36') {
+
+								mainObj.children[i].material = selected;
+								TweenMax.to(mainObj.children[i].material.color, 0.1, {b:255, g:255,r:255});
+								TweenMax.to(mainObj.children[i].material.color, 0.1, {ease:Power4.easeInOut,b:0, g:0,r:0,delay:0.2});
+								
+								
+							}
+					}	
+					
+				}
+				function straps(){
+
+					for (var i = 0; i < mainObj.children.length; i++) {
+							if (mainObj.children[i].name == 'object_67' ) {
+								TweenMax.to(mainObj.children[i].position, 0.5, {z:-6.32,yoyo:true, ease: Power4.easeOut,repeat:1,delay:0.4});
+							}else if ( mainObj.children[i].name == 'object_66') {
+								TweenMax.to(mainObj.children[i].position, 0.5, {z:-6.32,yoyo:true, ease: Power4.easeOut,repeat:1,delay:0.4});
+							}
+					}	
+					
+				}
 
 				function setUpSelectableState(event) {
 					var canvas = document.getElementById("info");
@@ -633,63 +652,235 @@
 				}
 
 
+				function attachButtonMaterials( materials, faceMaterials, material_indices, car ) {
+					for( var i = 0; i < materials.length; i ++ ) {
+
+						$( button_name( car, i ) ).counter = i;
+						$( button_name( car, i ) ).addEventListener( 'click', function() {
+
+							for ( var j = 0; j < material_indices.length; j ++ ) {
+
+								faceMaterials[ material_indices [ j ] ] = materials[ this.counter ][ 1 ];
+
+							}
+
+						}, false );
+
+					}
+
+				}
+				function colorSelections(obj){
+					
+					var buttons, i, src = "";
+					var mlib = {
+
+						"Orange": 	new THREE.MeshLambertMaterial( { color: 0xff6600, combine: THREE.MixOperation, reflectivity: 0.3 } ),
+						"Blue": 	new THREE.MeshLambertMaterial( { color: 0x001133, combine: THREE.MixOperation, reflectivity: 0.3 } ),
+						"Red": 		new THREE.MeshLambertMaterial( { color: 0x660000, combine: THREE.MixOperation, reflectivity: 0.25 } ),
+						"Black": 	new THREE.MeshLambertMaterial( { color: 0x000000, combine: THREE.MixOperation, reflectivity: 0.15 } ),
+						"White":	new THREE.MeshLambertMaterial( { color: 0xffffff, combine: THREE.MixOperation, reflectivity: 0.25 } ),
+
+						"Carmine": 	new THREE.MeshPhongMaterial( { color: 0x770000, specular:0xffaaaa, combine: THREE.MultiplyOperation } ),
+						"Gold": 	new THREE.MeshPhongMaterial( { color: 0xaa9944, specular:0xbbaa99, shininess:50, combine: THREE.MultiplyOperation } ),
+						"Bronze":	new THREE.MeshPhongMaterial( { color: 0x150505, specular:0xee6600, shininess:10, combine: THREE.MixOperation, reflectivity: 0.25 } ),
+						"Chrome": 	new THREE.MeshPhongMaterial( { color: 0xffffff, specular:0xffffff, combine: THREE.MultiplyOperation } ),
+
+						"Orange metal": new THREE.MeshLambertMaterial( { color: 0xff6600, combine: THREE.MultiplyOperation } ),
+						"Blue metal": 	new THREE.MeshLambertMaterial( { color: 0x001133, combine: THREE.MultiplyOperation } ),
+						"Red metal": 	new THREE.MeshLambertMaterial( { color: 0x770000, combine: THREE.MultiplyOperation } ),
+						"Green metal": 	new THREE.MeshLambertMaterial( { color: 0x007711, combine: THREE.MultiplyOperation } ),
+						"Black metal":	new THREE.MeshLambertMaterial( { color: 0x222222, combine: THREE.MultiplyOperation } ),
+
+						"Pure chrome": 	new THREE.MeshLambertMaterial( { color: 0xffffff} ),
+						"Dark chrome":	new THREE.MeshLambertMaterial( { color: 0x444444} ),
+						"Darker chrome":new THREE.MeshLambertMaterial( { color: 0x222222} ),
+
+						"Black glass": 	new THREE.MeshLambertMaterial( { color: 0x101016, opacity: 0.975, transparent: true } ),
+						"Dark glass":	new THREE.MeshLambertMaterial( { color: 0x101046, opacity: 0.25, transparent: true } ),
+						"Blue glass":	new THREE.MeshLambertMaterial( { color: 0x668899, opacity: 0.75, transparent: true } ),
+						"Light glass":	new THREE.MeshBasicMaterial( { color: 0x223344, opacity: 0.25, transparent: true, combine: THREE.MixOperation, reflectivity: 0.25 } ),
+
+						"Red glass":	new THREE.MeshLambertMaterial( { color: 0xff0000, opacity: 0.75, transparent: true } ),
+						"Yellow glass":	new THREE.MeshLambertMaterial( { color: 0xffffaa, opacity: 0.75, transparent: true } ),
+						"Orange glass":	new THREE.MeshLambertMaterial( { color: 0x995500, opacity: 0.75, transparent: true } ),
+
+						"Orange glass 50":	new THREE.MeshLambertMaterial( { color: 0xffbb00, opacity: 0.5, transparent: true } ),
+						"Red glass 50": 	new THREE.MeshLambertMaterial( { color: 0xff0000, opacity: 0.5, transparent: true } ),
+
+						"Fullblack rough":	new THREE.MeshLambertMaterial( { color: 0x000000 } ),
+						"Black rough":		new THREE.MeshLambertMaterial( { color: 0x050505 } ),
+						"Darkgray rough":	new THREE.MeshLambertMaterial( { color: 0x090909 } ),
+						"Red rough":		new THREE.MeshLambertMaterial( { color: 0x330500 } ),
+
+						"Darkgray shiny":	new THREE.MeshPhongMaterial( { color: 0x000000, specular: 0x050505 } ),
+						"Gray shiny":		new THREE.MeshPhongMaterial( { color: 0x050505, shininess: 20 } )
+
+						};
+						
+
+						for (var i in mlib) {
+						  if (mlib.hasOwnProperty(i)) {
+						    src += '<button id="' + i + '">' + i + '</button> ';
 
 
+						  }
+						}
+						var btnLocation = document.getElementById('color');
+						buttons = document.createElement( "div" );
+						buttons.innerHTML = src;
+						btnLocation.appendChild(buttons);
+						return buttons;
+
+
+
+				}
+				function colorPop (){
+					
+					// var indigoColor = #4B0082;
+					 TweenLite
+					      .fromTo($('.modal__body'), .2, {
+					        opacity: 0
+					      }, {
+					        opacity: 1,
+					        delay: 0,
+					        ease: Power1.easeOut,
+					        force3D: true
+					      })
+
+					    TweenLite
+					      .fromTo($('.modal__body'), .3, {
+					        translateY: 0,
+					        rotationX: -40,
+					        y: '50%', 
+					        scale: .7,
+					        transformOrigin: "50% 150px -100px"
+					      }, {
+					        translateY: 0,
+					        rotationX: 0,
+					        y: '0%',
+					        ease: Power3.easeInOut,
+					        scale: 1
+					      })
+
+					    TweenLite
+					      .fromTo($('.modal__heading'), .3, {
+					        translateY: 0,
+					        rotationX: -40,
+					        y: '0%', 
+					        scale: .7,
+					        opacity: 0,
+					        transformOrigin: "50% 150px -100px"
+					      }, {
+					        translateY: 0,
+					        rotationX: 0,
+					        y: '-150%',
+					        ease: Back.easeOut.config(1.5),
+					        scale: 1,
+					        delay: .15,
+					        opacity: 1
+					      })
+    
+
+				}
+				function closePop(){
+				  	TweenLite
+				      .fromTo($('.modal__body'), .2, {
+				        opacity: 1
+				      }, {
+				        opacity: 0,
+				        delay: .15,
+				        ease: Power1.easeInOut
+				      })
+
+				    TweenLite
+				      .fromTo($('.modal__body'), .3, {
+				        translateY: 0,
+				        rotationX: 0,
+				        y: '0%', 
+				        scale: 1,
+				        transformOrigin: "50% 150px -100px"
+				      }, {
+				        translateY: 0,
+				        rotationX: -40,
+				        y: '50%',
+				        ease: Power3.easeInOut,
+				        scale: .7,
+				        delay: .15,
+				      })
+
+				    TweenLite
+				      .fromTo($('.modal__heading'), .3, {
+				        rotationX: 0,
+				        y: '-150%', 
+				        scale: 1,
+				        opacity: 1,
+				        transformOrigin: "50% 150px -100px"
+				      }, {
+				        rotationX: -40,
+				        y: '0%',
+				        ease: Back.easeIn.config(1.75),
+				        scale: .7,
+				        opacity: 0
+				      })
+
+				  }
 
 				function onCoverClick (event){
 									
 
 						event.preventDefault();
 						setUpSelectableState(event);
-
+	
 						var intersects = raycaster.intersectObjects(scene.children, true);
-						if (intersects[0].object.parent.name != 'undefined') {
-							var objName = intersects[0].object.parent.name;
-						};
-						
-						selectedObject = intersects[0].object;
-						if(selectedObject.name == 'frnt_1') {
+						if ( intersects.length > 0) {
+								var objName = intersects[0].object.parent.name;
+								selectedObject = intersects[0].object;
+								
+								if(selectedObject.name == 'frnt_1') {
 
-								if ( intersects.length > 0) {
-									
+											if ( coverClciked == false) {
+											
+													coverClciked = true;
+													colorPop();
+													// TweenMax.to(selectedObject.position, 1, {x:0, y:0,z:20, ease:Power2.easeInOut}, "-=1");
+													// console.log(selectedObject.name);
+											
+													selectedObject.material = selected;
+													TweenMax.to(selectedObject.material.color, 1, {b:22, g:0,r:0, ease:Power2.easeInOut}, "-=1");
+													console.log('thats it');
+													var obj = selectedObject.material;
+													colorSelections(obj);
 
-									
-									if ( coverClciked == false) {
-									
-											coverClciked = true;
+
+											}else{
+												 	// TweenMax.to(selectedObject.position, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+												 	closePop();
+												 	$( "#color" ).empty();
+												 	console.log('else1');
+													coverClciked = false;
+													selectedObject.material = theMaterial;
+													TweenMax.to(selectedObject.material.color, 1, {b:0, g:0,r:0, ease:Power2.easeInOut}, "-=1");
+													
+											}
+
 										
-											// TweenMax.to(selectedObject.position, 1, {x:0, y:0,z:20, ease:Power2.easeInOut}, "-=1");
-											// console.log(selectedObject.name);
-									
-											selectedObject.material = selected;
-											TweenMax.to(selectedObject.material.color, 1, {b:22, g:0,r:0, ease:Power2.easeInOut}, "-=1");
-											console.log('thats it');
-									
-
-
-
-
-
-
-
-											
-
-									}else{
-										 	// TweenMax.to(selectedObject.position, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
-											coverClciked = false;
-											selectedObject.material = theMaterial;
-											TweenMax.to(selectedObject.material.color, 1, {b:0, g:0,r:0, ease:Power2.easeInOut}, "-=1");
-											
-									}
-
-								} else{
-									// TweenMax.to(selectedObject.position, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
-									selectedObject.material = theMaterial;
-											TweenMax.to(selectedObject.material.color, 1, {b:0, g:0,r:0, ease:Power2.easeInOut}, "-=1");
+										
+								}else{
+										closePop();
+									 	$( "#color" ).empty();
+									 	console.log('else3');
+										coverClciked = false;
+										selectedObject.material = theMaterial;
+										TweenMax.to(selectedObject.material.color, 1, {b:0, g:0,r:0, ease:Power2.easeInOut}, "-=1");
 								}
-								// outlinePass.selectedObjects = selectedObjects;
 
-								// console.log("scene.selectable: ", scene.selectable)
+						} else{
+										closePop();
+										$( "#color" ).empty();
+										console.log('else2');
+										// TweenMax.to(selectedObject.position, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+										selectedObject.material = theMaterial;
+												TweenMax.to(selectedObject.material.color, 1, {b:0, g:0,r:0, ease:Power2.easeInOut}, "-=1");
 						}
 
 
@@ -762,6 +953,26 @@
           			renderer.render( scene, camera );
 
         		}
+
+        		///////////////////////modal
+
+
+
+
+
+  TweenLite.set($('.modal'), {
+    perspective: 400
+  });
+  
+   TweenLite.set($('.modal__body'), {
+     transformStyle:"preserve-3d",
+     rotateX:-60,
+     backfaceVisibility:"hidden"
+  });
+ 
+  
+  
+
 
 		</script>
 
