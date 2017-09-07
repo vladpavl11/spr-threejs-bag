@@ -75,7 +75,7 @@
 			  font-weight: 900;
 			}
 			.modal__body {
-			  height: 200px;
+			  height: auto;
 			  width: 200px;
 			  padding: 1rem;
 			  color: white;
@@ -165,6 +165,7 @@ box-shadow: inset 1px 0px 11px 1px rgba(0,0,0,0.75);
 			<div class="modal">
 			  <h1 class="modal__heading">Heading</h1>
 			  <div class="modal__body">
+			  	<div class='close'>Close</div>
 			    <h1>Heading</h1>
 			    <p>Test Content here</p>
 			    <div id="color"></div>
@@ -228,14 +229,15 @@ box-shadow: inset 1px 0px 11px 1px rgba(0,0,0,0.75);
 			bagBmap.repeat.y = 2;
 
 			var theMaterial = new THREE.MeshPhongMaterial({
-				color      :  new THREE.Color("rgb(0,0,0)"),
+				ambient: 0x050505,
+				 color: 0x0033ff, 
+				 name : 'theMaterial',
+				 specular: 0x555555,
 			//	emissive   :  new THREE.Color("rgb(7,3,5)"),
 				shininess  :  8,
-				combine: THREE.MixOperation,
-				reflectivity: 0.25,
 			});
 			var selected = new THREE.MeshPhongMaterial({
-				color      :  new THREE.Color("rgb(210,33,112)"),
+				color: 0x001133,
 			//	emissive   :  new THREE.Color("rgb(7,3,5)"),
 				specular   :  new THREE.TextureLoader(manager).load('/threejs-assets/textures/specular.png'),
 				shininess  :  8,
@@ -243,7 +245,7 @@ box-shadow: inset 1px 0px 11px 1px rgba(0,0,0,0.75);
 				bumpScale  :  0.2,
 				transparent : true,
 			});
-
+			var newmaterial = new THREE.MeshLambertMaterial({color: 0x660000});
 			var tlScene1 = new TimelineMax({paused:true})
 			.add(addLights);
 			tlScene1.play();
@@ -254,7 +256,7 @@ box-shadow: inset 1px 0px 11px 1px rgba(0,0,0,0.75);
 				console.log('light added')
 				// scene.add( new THREE.AmbientLight( 0x72a1bf ));
 				// camera.add( leftSideLight );
-				camera.add( frontLight );
+				// camera.add( frontLight );
 				// camera.add( leftSideBottomLight );
 				// camera.add( rightSideBottomLight );
 				// camera.add( rightSideLight );
@@ -346,10 +348,18 @@ box-shadow: inset 1px 0px 11px 1px rgba(0,0,0,0.75);
 				color      :  new THREE.Color("rgb(0,0,0)"),
 			//	emissive   :  new THREE.Color("rgb(7,3,5)"),
 				shininess  :  8,
+				name : 'bagMaterial',
 				bumpMap    :  bagBmap,
 				bumpScale  :  0.2,
 				transparent : true,
 			});
+			var Orange = new THREE.LineBasicMaterial( {
+				color: 0xFF4500,
+				 name : 'Orange',
+				linewidth: 1,
+				linecap: 'round', 
+				linejoin:  'round'
+			} );
 
 			/////////////////// Loading Animation And Counter//////////////////////
 
@@ -673,69 +683,66 @@ intro();
 					
 					var buttons, i, src = "";
 					var mlib = {
+						"Orange": 	new THREE.LineBasicMaterial( {color: 0xFF4500} ),
+						"Blue": 	new THREE.MeshLambertMaterial( { color: 0x001133} ),
+						"Red": 		new THREE.MeshLambertMaterial( {color: 0x660000  } ),
+						"Black": 	new THREE.MeshLambertMaterial( { color: 0x000000  } ),
+						"White":	new THREE.MeshLambertMaterial( { color: 0xffffff } ),
 
-						"Orange": 	new THREE.MeshLambertMaterial( { color: 0xff6600, combine: THREE.MixOperation, reflectivity: 0.3 } ),
-						"Blue": 	new THREE.MeshLambertMaterial( { color: 0x001133, combine: THREE.MixOperation, reflectivity: 0.3 } ),
-						"Red": 		new THREE.MeshLambertMaterial( { color: 0x660000, combine: THREE.MixOperation, reflectivity: 0.25 } ),
-						"Black": 	new THREE.MeshLambertMaterial( { color: 0x000000, combine: THREE.MixOperation, reflectivity: 0.15 } ),
-						"White":	new THREE.MeshLambertMaterial( { color: 0xffffff, combine: THREE.MixOperation, reflectivity: 0.25 } ),
-
-						"Carmine": 	new THREE.MeshPhongMaterial( { color: 0x770000, specular:0xffaaaa, combine: THREE.MultiplyOperation } ),
-						"Gold": 	new THREE.MeshPhongMaterial( { color: 0xaa9944, specular:0xbbaa99, shininess:50, combine: THREE.MultiplyOperation } ),
-						"Bronze":	new THREE.MeshPhongMaterial( { color: 0x150505, specular:0xee6600, shininess:10, combine: THREE.MixOperation, reflectivity: 0.25 } ),
-						"Chrome": 	new THREE.MeshPhongMaterial( { color: 0xffffff, specular:0xffffff, combine: THREE.MultiplyOperation } ),
-
-						"Orange metal": new THREE.MeshLambertMaterial( { color: 0xff6600, combine: THREE.MultiplyOperation } ),
-						"Blue metal": 	new THREE.MeshLambertMaterial( { color: 0x001133, combine: THREE.MultiplyOperation } ),
-						"Red metal": 	new THREE.MeshLambertMaterial( { color: 0x770000, combine: THREE.MultiplyOperation } ),
-						"Green metal": 	new THREE.MeshLambertMaterial( { color: 0x007711, combine: THREE.MultiplyOperation } ),
-						"Black metal":	new THREE.MeshLambertMaterial( { color: 0x222222, combine: THREE.MultiplyOperation } ),
-
-						"Pure chrome": 	new THREE.MeshLambertMaterial( { color: 0xffffff} ),
-						"Dark chrome":	new THREE.MeshLambertMaterial( { color: 0x444444} ),
-						"Darker chrome":new THREE.MeshLambertMaterial( { color: 0x222222} ),
-
-						"Black glass": 	new THREE.MeshLambertMaterial( { color: 0x101016, opacity: 0.975, transparent: true } ),
-						"Dark glass":	new THREE.MeshLambertMaterial( { color: 0x101046, opacity: 0.25, transparent: true } ),
-						"Blue glass":	new THREE.MeshLambertMaterial( { color: 0x668899, opacity: 0.75, transparent: true } ),
-						"Light glass":	new THREE.MeshBasicMaterial( { color: 0x223344, opacity: 0.25, transparent: true, combine: THREE.MixOperation, reflectivity: 0.25 } ),
-
-						"Red glass":	new THREE.MeshLambertMaterial( { color: 0xff0000, opacity: 0.75, transparent: true } ),
-						"Yellow glass":	new THREE.MeshLambertMaterial( { color: 0xffffaa, opacity: 0.75, transparent: true } ),
-						"Orange glass":	new THREE.MeshLambertMaterial( { color: 0x995500, opacity: 0.75, transparent: true } ),
-
-						"Orange glass 50":	new THREE.MeshLambertMaterial( { color: 0xffbb00, opacity: 0.5, transparent: true } ),
-						"Red glass 50": 	new THREE.MeshLambertMaterial( { color: 0xff0000, opacity: 0.5, transparent: true } ),
-
-						"Fullblack rough":	new THREE.MeshLambertMaterial( { color: 0x000000 } ),
-						"Black rough":		new THREE.MeshLambertMaterial( { color: 0x050505 } ),
-						"Darkgray rough":	new THREE.MeshLambertMaterial( { color: 0x090909 } ),
-						"Red rough":		new THREE.MeshLambertMaterial( { color: 0x330500 } ),
-
-						"Darkgray shiny":	new THREE.MeshPhongMaterial( { color: 0x000000, specular: 0x050505 } ),
-						"Gray shiny":		new THREE.MeshPhongMaterial( { color: 0x050505, shininess: 20 } )
-
+						"Carmine": 	new THREE.MeshPhongMaterial( { color: 0x770000   } ),
+						"Gold": 	new THREE.MeshPhongMaterial( { color: 0xaa9944 } ),
+						"Bronze":	new THREE.MeshPhongMaterial( { color: 0x150505  } ),
+						"Chrome": 	new THREE.MeshPhongMaterial( { color: 0xffffff  } ),
 						};
+						
+						// for( var i = 0; i < mlib.length; i ++ ) {
+
+						// }
+
 						
 
 						for (var i in mlib) {
 						  if (mlib.hasOwnProperty(i)) {
 						    src += '<button id="' + i + '">' + i + '</button> ';
+						    console.log('mlib',i);
+						    $('body').on('click','#'+i,function(){
+						    	var clickedbtn = $(this).attr('id');
+						  //    	for ( var j = 0; j == i; j ++ ) {
+								// 	faceMaterials[ material_indices [ j ] ] = materials[ this.counter ][ 1 ];
+								// }
+								for (clickedbtn in i) {
+								    if (i.hasOwnProperty(clickedbtn)) {
+								       console.log('bingo',clickedbtn);
+								       // obj.material.color = clickedbtn.color;
+								    }
+								}
+								
 
+						     })
 
+								 //    $(colorBtn).addEventListener( 'click', function() {
+								 //    	console.log('colcor click');
+									// 	// for ( var j = 0; j < material_indices.length; j ++ ) {
+									// 	// 	faceMaterials[ material_indices [ j ] ] = materials[ this.counter ][ 1 ];
+									// 	// }
+									// }, false );
 						  }
+						 
 						}
+						$(document).on('click','.close',function(){
+							closePop();
+						});
 						var btnLocation = document.getElementById('color');
 						buttons = document.createElement( "div" );
 						buttons.innerHTML = src;
 						btnLocation.appendChild(buttons);
 						return buttons;
 
-
-
 				}
+
+
 				function colorPop (){
-					
+				
 					// var indigoColor = #4B0082;
 					 TweenLite
 					      .fromTo($('.modal__body'), .2, {
@@ -779,49 +786,52 @@ intro();
 					        delay: .15,
 					        opacity: 1
 					      })
+					
     
 
 				}
 				function closePop(){
-				  	TweenLite
-				      .fromTo($('.modal__body'), .2, {
-				        opacity: 1
-				      }, {
-				        opacity: 0,
-				        delay: .15,
-				        ease: Power1.easeInOut
-				      })
+					$( "#color" ).empty();
+							  	TweenLite
+							      .fromTo($('.modal__body'), .2, {
+							        opacity: 1
+							      }, {
+							        opacity: 0,
+							        delay: .15,
+							        ease: Power1.easeInOut
+							      })
 
-				    TweenLite
-				      .fromTo($('.modal__body'), .3, {
-				        translateY: 0,
-				        rotationX: 0,
-				        y: '0%', 
-				        scale: 1,
-				        transformOrigin: "50% 150px -100px"
-				      }, {
-				        translateY: 0,
-				        rotationX: -40,
-				        y: '50%',
-				        ease: Power3.easeInOut,
-				        scale: .7,
-				        delay: .15,
-				      })
+							    TweenLite
+							      .fromTo($('.modal__body'), .3, {
+							        translateY: 0,
+							        rotationX: 0,
+							        y: '0%', 
+							        scale: 1,
+							        transformOrigin: "50% 150px -100px"
+							      }, {
+							        translateY: 0,
+							        rotationX: -40,
+							        y: '50%',
+							        ease: Power3.easeInOut,
+							        scale: .7,
+							        delay: .15,
+							      })
 
-				    TweenLite
-				      .fromTo($('.modal__heading'), .3, {
-				        rotationX: 0,
-				        y: '-150%', 
-				        scale: 1,
-				        opacity: 1,
-				        transformOrigin: "50% 150px -100px"
-				      }, {
-				        rotationX: -40,
-				        y: '0%',
-				        ease: Back.easeIn.config(1.75),
-				        scale: .7,
-				        opacity: 0
-				      })
+							    TweenLite
+							      .fromTo($('.modal__heading'), .3, {
+							        rotationX: 0,
+							        y: '-150%', 
+							        scale: 1,
+							        opacity: 1,
+							        transformOrigin: "50% 150px -100px"
+							      }, {
+							        rotationX: -40,
+							        y: '0%',
+							        ease: Back.easeIn.config(1.75),
+							        scale: .7,
+							        opacity: 0
+							      })
+				       
 
 				  }
 
@@ -835,52 +845,50 @@ intro();
 						if ( intersects.length > 0) {
 								var objName = intersects[0].object.parent.name;
 								selectedObject = intersects[0].object;
-								
+
 								if(selectedObject.name == 'frnt_1') {
 
 											if ( coverClciked == false) {
 											
 													coverClciked = true;
 													colorPop();
-													// TweenMax.to(selectedObject.position, 1, {x:0, y:0,z:20, ease:Power2.easeInOut}, "-=1");
-													// console.log(selectedObject.name);
-											
+												
 													selectedObject.material = selected;
 													TweenMax.to(selectedObject.material.color, 1, {b:22, g:0,r:0, ease:Power2.easeInOut}, "-=1");
 													console.log('thats it');
-													var obj = selectedObject.material;
+													var obj = selectedObject;
 													colorSelections(obj);
 
 
-											}else{
-												 	// TweenMax.to(selectedObject.position, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
-												 	closePop();
-												 	$( "#color" ).empty();
-												 	console.log('else1');
-													coverClciked = false;
-													selectedObject.material = theMaterial;
-													TweenMax.to(selectedObject.material.color, 1, {b:0, g:0,r:0, ease:Power2.easeInOut}, "-=1");
-													
 											}
+											// else{
+											// 	 	closePop();
+											// 	 	$( "#color" ).empty();
+											// 	 	console.log('else1');
+											// 		coverClciked = false;
+											// 		selectedObject.material = theMaterial;
+											// 		TweenMax.to(selectedObject.material.color, 1, {b:0, g:0,r:0, ease:Power2.easeInOut}, "-=1");
+													
+											// }
 
 										
 										
 								}else{
-										closePop();
-									 	$( "#color" ).empty();
+										// closePop();
+									 // 	$( "#color" ).empty();
 									 	console.log('else3');
-										coverClciked = false;
-										selectedObject.material = theMaterial;
-										TweenMax.to(selectedObject.material.color, 1, {b:0, g:0,r:0, ease:Power2.easeInOut}, "-=1");
+										// coverClciked = false;
+										// selectedObject.material = theMaterial;
+										// TweenMax.to(selectedObject.material.color, 1, {b:0, g:0,r:0, ease:Power2.easeInOut}, "-=1");
 								}
 
-						} else{
-										closePop();
-										$( "#color" ).empty();
+						}else{
+										
+										coverClciked = false;
 										console.log('else2');
 										// TweenMax.to(selectedObject.position, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
-										selectedObject.material = theMaterial;
-												TweenMax.to(selectedObject.material.color, 1, {b:0, g:0,r:0, ease:Power2.easeInOut}, "-=1");
+										// selectedObject.material = theMaterial;
+										// 		TweenMax.to(selectedObject.material.color, 1, {b:0, g:0,r:0, ease:Power2.easeInOut}, "-=1");
 						}
 
 

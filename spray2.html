@@ -1,239 +1,984 @@
+
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>three.js webgl - teapot buffer geometry</title>
+		<title>three.js webgl - loaders - OBJ loader</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
-				color: #fff;
 				font-family: Monospace;
-				font-size: 13px;
-				text-align: center;
-				font-weight: bold;
-				background-color: #000;
+				background-color: #fff;
+				color: #000;
 				margin: 0px;
 				overflow: hidden;
 			}
 			#info {
+				color: #000;
 				position: absolute;
-				padding: 10px;
+				top: 10px;
 				width: 100%;
 				text-align: center;
-				color: #fff;
+				z-index: 100;
+				display:block;
 			}
-			a { color: blue; }
+			#svg {
+			  margin: 10px;
+			  visibility: hidden;
+			}
+			.stroke1 {
+			    stroke-width: 1px;
+			    stroke: red;
+			}
+
+
+			#animation_container{
+				position: absolute;
+			    width: 100%;
+			    display: table;
+			    margin: 0 auto;
+			}
+			#loading{
+				margin: 18% auto;
+    			display: table;
+    			
+			}
+			/*.loading-container{
+				opacity: 0;
+			}*/
+			.percentage_count{
+				display: table;
+			    width: 100%;
+			    position: absolute;
+			}
+			.percentage_count > div{
+				    display: table;
+    				margin: 10% auto;
+			}
+			#info a, .button { color: #f00; font-weight: bold; text-decoration: underline; cursor: pointer }
+
+			.modal {
+			  height: 100%;
+			  width: 100%;
+			  position: absolute;
+			}
+			.modal__heading {
+			  color: #fff;
+			  display: block;
+			  text-align: center;
+			  margin: 0;
+			  position: absolute;
+			  top: 0;
+			  right: 0;
+			  left: 0;
+			  opacity: 0;
+			  font-weight: 900;
+			}
+			.modal__body {
+			  height: auto;
+			  width: 200px;
+			  padding: 1rem;
+			  color: white;
+			  position: absolute;
+				right: 5%;
+			  border-radius: 4px;
+			  margin: 100px auto 0;
+			  opacity: 0;
+			  scale: .7;
+			  display: block;
+			  color: #333;
+			  -webkit-box-shadow: inset 1px 0px 11px 1px rgba(0,0,0,0.75);
+-moz-box-shadow: inset 1px 0px 11px 1px rgba(0,0,0,0.75);
+box-shadow: inset 1px 0px 11px 1px rgba(0,0,0,0.75);
+			}
+
+
+
 		</style>
 	</head>
+
 	<body>
+		<div class="loading-container">
+			    <div id="animation_container">
+
+			    	<svg id="loading" class="img-responsive" alt="SprayGround" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="106.668px" height="406.668px" viewBox="150 -150 106.668 406.668" enable-background="new 150 -150 106.668 406.668" xml:space="preserve">
+						 <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+							<path class="stroke1" fill="none" stroke="#000" stroke-width="0.74" stroke="#000" stroke-width="2" stroke-linecap="round" d="M187.426-104.301v-18.228l6.805,0.968v14.94l9.261,1.309v-11.242c0-2.695,1.475-3.505,3.582-3.216
+								c3.77,0.492,11.416,1.563,14.651,2.066c1.562,0.22,3.429,1.148,3.429,4.627v16.637l-6.664-0.932v-12.83l-8.188-1.146v10.899
+								c0,2.746-1.666,3.713-3.229,3.499c-3.676-0.521-12.646-1.742-16.313-2.297C188.795-99.568,187.426-100.766,187.426-104.301z"></path>
+							<path class="stroke1" fill="none" stroke="#000" stroke-width="0.74" d="M200.897-72.575V-85.31l-13.472-1.896v-7.96l37.727,5.304c0,0,0,14.67,0,21.56
+								c0,2.216-1.521,3.694-3.877,3.365l-16.165-2.267C201.977-67.648,200.897-69.493,200.897-72.575z M218.489-73.194v-9.639
+								l-10.779-1.521v9.644L218.489-73.194z"></path>
+							<path class="stroke1" fill="none" stroke="#000" stroke-width="0.74" d="M187.426-46.714l13.471-3.662v-4.767l-13.471-1.892v-8.061l37.728,5.301c0,0,0,15.484,0,22.382
+								c0,2.505-1.173,3.983-3.429,3.667l-17.395-2.442c-1.914-0.271-3.434-1.741-3.434-4.396v-1.59l-13.472,3.701L187.426-46.714
+								L187.426-46.714z M218.489-42.163v-10.515l-10.927-1.532v10.51L218.489-42.163z"></path>
+							<path class="stroke1" fill="none" stroke="#000" stroke-width="0.74" d="M187.426-12.892l6.756-0.775v-11.292l-6.756-2.781v-7.913l37.728,14.564v12.635l-37.728,3.766V-12.892z
+								 M216.432-15.559v-1.156l-15.488-5.744v8.296L216.432-15.559z"></path>
+							<path class="stroke1" stroke="#000" fill="none" stroke-width="0.74" d="M200.553,13.239l-13.127-1.846V3.525l13.127,1.853l24.601-7.354v8.494l-14.604,3.969v0.683l14.604,8.179
+								v7.861L200.553,13.239z"></path>
+							<path class="stroke1" fill="none" stroke="#000" stroke-width="0.74" d="M187.426,28.632c0-1.933,1.318-3.529,3.334-3.246c4.205,0.59,27.385,3.848,30.422,4.275
+								c1.178,0.168,3.972,1.18,3.972,4.611v18.854l-6.664-0.939V37.336l-24.259-3.406v10.51l9.261,1.302v-5.016l6.811,0.96v12.973
+								l-22.874-3.218V28.632H187.426z"></path>
+							<path class="stroke1" fill="none" stroke="#000" stroke-width="0.74" d="M187.426,74.423l13.471-3.646v-4.782l-13.471-1.894v-8.058l37.728,5.306c0,0,0,15.478,0,22.394
+								c0,2.493-1.173,3.969-3.429,3.653l-17.395-2.444c-1.914-0.269-3.434-1.736-3.434-4.392v-1.599l-13.472,3.709L187.426,74.423
+								L187.426,74.423z M218.489,78.985V68.468l-10.927-1.535v10.51L218.489,78.985z"></path>
+							<path class="stroke1" fill="none" stroke="#000" stroke-width="0.74" d="M187.426,110.085l0-19.002c0-2.125,2.59-3.449,3.773-3.287c4.158,0.584,27.58,3.881,30.61,4.31
+								c2.313,0.326,3.342,2.881,3.342,4.715v18.134c0,2.407-1.77,3.809-3.342,3.588c-3.03-0.435-26.453-3.726-30.611-4.312
+								C190.016,114.069,187.426,112.208,187.426,110.085z M218.489,110.204V99.503l-24.403-3.44v10.711L218.489,110.204z"></path>
+							<path class="stroke1" fill="none" stroke="#000" stroke-width="0.74" d="M187.426,123.273c0-3.276,1.465-4.668,3.967-4.312c4.558,0.639,33.761,4.74,33.761,4.74v7.961
+								l-30.923-4.345v10.606l30.923,4.347v7.762l-37.728-5.299V123.273z"></path>
+							<path  class="stroke1" fill="none" stroke="#000" stroke-width="0.74" d="M187.426,169.267l20.137-8.51v-0.586l-20.137-2.832v-7.811l37.678,5.293v7.912l-21.069,8.23v0.529
+								l21.069,2.963v7.82l-37.678-5.305V169.267z"></path>
+							<path class="stroke1" fill="none" stroke="#000" stroke-width="0.74" d="M187.426,203.575v-21.572l37.728,5.305c0,0,0,14.766,0,21.664c0,3.518-1.623,4.641-4.652,4.217
+								c-3.039-0.428-23.963-3.359-28.127-3.955C189.234,208.792,187.426,206.271,187.426,203.575z M218.489,204.991v-10.564l-24.307-3.41
+								v10.564L218.489,204.991z"></path>
+						</g>
+						<g>
+							<path class="stroke1" fill="none"  stroke="#000" stroke-width="0.74" d="M206.307,229.196c-3.614,0-6.483-2.904-6.483-6.602c0-3.699,2.869-6.643,6.483-6.643
+								c3.616,0,6.448,2.943,6.448,6.682C212.755,226.292,209.923,229.196,206.307,229.196z M206.307,217.604
+								c-2.866,0-5.145,2.164-5.145,5.031c-0.037,2.787,2.277,4.912,5.107,4.912c2.868,0,5.187-2.125,5.187-4.99
+								C211.456,219.769,209.138,217.604,206.307,217.604z M202.968,221.573v-1.494h6.444c0.081,0.586,0.195,1.418,0.195,2.479
+								c0,1.219-0.195,1.766-0.509,2.199c-0.271,0.396-0.748,0.666-1.375,0.666c-0.782,0-1.297-0.59-1.533-1.338h-0.077
+								c-0.197,0.631-0.704,0.947-1.569,1.145c-0.985,0.191-1.339,0.346-1.576,0.477v-1.58c0.236-0.197,0.787-0.309,1.576-0.51
+								c0.663-0.119,0.98-0.516,0.98-1.338v-0.705H202.968L202.968,221.573z M206.584,221.614v0.703c0,0.826,0.272,1.5,0.941,1.5
+								c0.592,0,0.984-0.438,0.984-1.373c0-0.402-0.042-0.68-0.079-0.83H206.584L206.584,221.614z"></path>
+						</g>
+						</svg>
+
+
+
+
+
+
+
+			  
+					
+				</div>
+				<div class="percentage_count">
+					<div>
+						<div class="count"></div>
+						<div class="loading">LOADING</div>
+					</div>
+				</div>
+			</div>	
+			<div id="buttons_materials" class="bwrap"></div>
+			<div class="modal">
+			  <h1 class="modal__heading">Heading</h1>
+			  <div class="modal__body">
+			  	<div class='close'>Close</div>
+			    <h1>Heading</h1>
+			    <p>Test Content here</p>
+			    <div id="color"></div>
+			  </div>
+			</div>
 		<div id="info">
-			
 		</div>
 
+		<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
 		<script src="build/three.js"></script>
 
-		<script src="js/controls/OrbitControls.js"></script>
-<script src="js/Detector.js"></script>
-
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.2/TweenMax.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.2/TweenLite.min.js"></script>
+		<script src="js/plugins/DrawSVGPlugin.min.js"></script>
+		<script src="js/plugins/MorphSVGPlugin.min.js"></script>
 		<script src="js/controls/OrbitControls.js"></script>
 		<script type="text/javascript" src="js/loaders/OBJLoader.js"></script>
 		<script type="text/javascript" src="js/loaders/ColladaLoader.js"></script>
 		<script type="text/javascript" src="js/loaders/MTLLoader.js"></script>
-		<script src="js/shaders/BasicShader.js"></script>
-		
 		<script src="js/postprocessing/EffectComposer.js"></script>
-
+		<script src="js/shaders/BasicShader.js"></script>
+		<script src="js/shaders/CopyShader.js"></script>
+		<script src="js/postprocessing/ShaderPass.js"></script>
+		<script src="js/postprocessing/OutlinePass.js"></script>
+		<script src="js/loaders/MTLLoader.js"></script>
+		<script src="js/loaders/DDSLoader.js"></script>
 		<script src="js/postprocessing/RenderPass.js"></script>
 
 		<script src="js/postprocessing/ClearPass.js"></script>
 
 		<script>
-			////////////////////////////////////////////////////////////////////////////////
-			// Utah/Newell Teapot demo
-			////////////////////////////////////////////////////////////////////////////////
-			/*global THREE, Detector, container, dat, window */
-			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
-			var camera, scene, renderer;
-			var cameraControls;
-			var effectController;
-			var teapotSize = 400;
-			var ambientLight, light;
-			var skybox;
-			var tess = -1;	// force initialization
-			var bBottom ;
-			var bLid;
-			var bBody;
-			var newTess = 15;
-			var bFitLid;
-			var bNonBlinn;
-			var shading;
-			var wireMaterial, flatMaterial, gouraudMaterial, phongMaterial, texturedMaterial, reflectiveMaterial;
-			var teapot, textureCube;
-			// allocate these just once
-			var diffuseColor = new THREE.Color();
-			var specularColor = new THREE.Color();
+				
+				
+				// for(var i = 0; i < mlib.length; i++){
+			 //        testFunction;
+			 //    }
+// console.log('mlib.length', mlib.length);
+
+			var container;
+
+			var camera, scene,scaleAmount = 180, 
+			renderer, 
+			controls,
+			rayCastItems = [],
+			camToSave = {},
+			selectedObjects = [],
+			tl = new TimelineLite({repeat:-1}),
+			introTl = new TimelineMax(),
+			coverClciked = false,
+			scaleAmount = 180;
+
+			
+			var mouseX = 0, mouseY = 0;
+			var bagBmap = new THREE.TextureLoader(manager).load('/Textures/GREEN.png');//// test texture
+			bagBmap.wrapS = THREE.RepeatWrapping;
+			bagBmap.wrapT = THREE.RepeatWrapping;
+			bagBmap.repeat.x = 2;
+			bagBmap.repeat.y = 2;
+
+			var theMaterial = new THREE.MeshPhongMaterial({
+				ambient: 0x050505,
+				 color: 0x0033ff, 
+				 name : 'theMaterial',
+				 specular: 0x555555,
+			//	emissive   :  new THREE.Color("rgb(7,3,5)"),
+				shininess  :  8,
+			});
+			var selected = new THREE.MeshPhongMaterial({
+				color: 0x001133,
+			//	emissive   :  new THREE.Color("rgb(7,3,5)"),
+				specular   :  new THREE.TextureLoader(manager).load('/threejs-assets/textures/specular.png'),
+				shininess  :  8,
+				bumpMap    :  bagBmap,
+				bumpScale  :  0.2,
+				transparent : true,
+			});
+			var Orange = new THREE.MeshPhongMaterial( {color: 0xFF4500} ),
+						Blue =	new THREE.MeshPhongMaterial( { color: 0x001133} ),
+						Red	= new THREE.MeshPhongMaterial( {color: 0x660000  } ),
+						Black = new THREE.MeshPhongMaterial( { color: 0x000000  } ), 
+						White = new THREE.MeshPhongMaterial( { color: 0xffffff } ),
+						Carmine =new THREE.MeshPhongMaterial( { color: 0x770000 } ),
+						Gold =	new THREE.MeshPhongMaterial( { color: 0xaa9944 } ),
+						Bronze = new THREE.MeshPhongMaterial( { color: 0x150505  } ),
+						Chrome = new THREE.MeshPhongMaterial( { color: 0xffffff  } );
+			var newmaterial = new THREE.MeshPhongMaterial({color: 0x660000});
+			var tlScene1 = new TimelineMax({paused:true})
+			.add(addLights);
+			tlScene1.play();
+
+
+
+			function addLights() {
+				console.log('light added')
+				// scene.add( new THREE.AmbientLight( 0x72a1bf ));
+				// camera.add( leftSideLight );
+				// camera.add( frontLight );
+				// camera.add( leftSideBottomLight );
+				// camera.add( rightSideBottomLight );
+				// camera.add( rightSideLight );
+				// camera.add( bottomLight );
+				camera.add( topLight );
+				// scene.add( quickLight);
+
+
+				
+				TweenMax.to(quickLight.position, 4, { x:-100,y:0, z:20,ease:Power2.easeOut});
+				TweenMax.to(frontLight, 2, {intensity: 7});
+
+				TweenMax.to(leftSideLight.position, 2, { x:-50,y:15, z:-50, alpha:0.5, ease:Power2.easeInOut});
+				TweenMax.to(leftSideLight, 10, {intensity: 5});
+
+				TweenMax.to(leftSideBottomLight.position, 10, { x:-50,y:-20, z:-100, alpha:0.5, ease:Power2.easeInOut});
+				TweenMax.to(leftSideBottomLight, 10, {intensity: 2});
+
+				TweenMax.to(rightSideBottomLight.position, 10, { x:50,y:-20, z:-100, alpha:0.5, ease:Power2.easeInOut});
+				TweenMax.to(rightSideBottomLight, 10, {intensity: 2});
+
+				TweenMax.to(rightSideLight.position, 10, { x:50,y:15, z:-60, alpha:0.5, ease:Power2.easeInOut});
+				TweenMax.to(rightSideLight, 10, {intensity: 6});
+
+				TweenMax.to(bottomLight.position, 10, { x:0,y:-60, z:-50, alpha:0.5, ease:Power2.easeInOut});
+				TweenMax.to(bottomLight, 10, {intensity: 7});
+
+				setTimeout(function(){
+					TweenMax.to(topLight, 13,{intensity:4});
+					TweenMax.to(topLight.position, 5,{ x:0,y:60, z:-80, alpha:0.5, ease:Power2.easeInOut});
+				}, 1000);
+
+			}
+			
+
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+			var quickLight = new THREE.SpotLight(0xffffff, 100, 29,0.8);
+				quickLight.position.set(200,0,20);
+			 	quickLight.rotation.set(0,0,0);
+			 	quickLight.castShadow = true;
+			 	quickLight.name= "QuickLight";
+
+			var frontLight = new THREE.DirectionalLight(0xffffff, 0);
+
+			var leftSideLight = new THREE.DirectionalLight(0xffffff, 0);
+				leftSideLight.position.set( 0, 0, 0 );
+				leftSideLight.rotation.set(0,-0.1,0); 
+				leftSideLight.castShadow = true;
+				leftSideLight.name = "LeftSideLight"
+				
+			var leftSideBottomLight = new THREE.DirectionalLight(0xffffff, 0);
+				leftSideBottomLight.position.set( 0, 0, 0);
+				leftSideBottomLight.rotation.set(0,0,-0.3);
+				leftSideBottomLight.castShadow = true;
+				leftSideBottomLight.name = "LeftSideBottomLight"
+			
+			var rightSideBottomLight = new THREE.DirectionalLight(0xffffff, 0);
+				rightSideBottomLight.position.set( 0, 0, 0);
+				rightSideBottomLight.rotation.set(0,0,-0.3);
+				rightSideBottomLight.castShadow = true;
+				rightSideBottomLight.name = "RightSideBottomLight"
+			
+			var rightSideLight = new THREE.DirectionalLight(0xffffff, 0);
+				rightSideLight.position.set( 0, 0, 0 );
+				rightSideLight.rotation.set(0,-0.1,0);
+				rightSideLight.castShadow = true;
+				rightSideLight.name = "RightSideLight"
+				
+
+			var bottomLight = new THREE.DirectionalLight(0xffffff, 0);
+				bottomLight.position.set( 0, 0, 0 );
+				bottomLight.rotation.set(0,0,0);
+				bottomLight.castShadow = true;
+				leftSideLight.name = "BottomLight"
+				
+			var topLight = new THREE.DirectionalLight(0xffffff, 0);
+				topLight.position.set( 0, 0, 0 );
+				topLight.rotation.set(0,0,0);
+				topLight.castShadow = true;
+			setTimeout(function(manager){
+				TweenMax.to(topLight, 13,{intensity:40});
+				TweenMax.to(topLight.position, 5,{ x:0,y:100, z:0});
+				TweenMax.to(topLight.rotation, 5,{ x:-1.6,y:0, z:0});
+			}, 1000);
+
+			var bagMaterial = new THREE.MeshPhongMaterial({
+				color      :  new THREE.Color("rgb(0,0,0)"),
+			//	emissive   :  new THREE.Color("rgb(7,3,5)"),
+				shininess  :  8,
+				name : 'bagMaterial',
+				bumpMap    :  bagBmap,
+				bumpScale  :  0.2,
+				transparent : true,
+			});
+
+			/////////////////// Loading Animation And Counter//////////////////////
+
+			function progressCounter(progress){
+				// tl.play();
+					
+				// //animate the plugin text first, drawing to 100%
+				// tl.fromTo(".stroke1", 8, {drawSVG:0}, {drawSVG:"102%"})
+				// .fromTo(".stroke2", 6, {drawSVG:0}, {drawSVG:"102%"}, "-=7")
+				// .fromTo(".stroke3", 4, {drawSVG:0}, {drawSVG:"102%"}, "-=4")
+				
+				
+				// TweenMax.to($('.count'), 4, {opacity:0});
+				 $('.count').text(progress + '%');
+
+				TweenMax.to($('.loading'), 0.4, {opacity:0, yoyo:true,repeat:-1});
+				TweenMax.staggerFrom(".stroke1", 2, {drawSVG:0}, 0.1);
+				// 	tl.fromTo(".stroke1", 8, {drawSVG:0}, {drawSVG:"102%"})
+				// .fromTo(".stroke2", 6, {drawSVG:0}, {drawSVG:"102%"}, "-=7")
+				//  .fromTo(".stroke3", 4, {drawSVG:0}, {drawSVG:"102%"}, "-=4")
+				 if (progress == '100') {
+				 	TweenMax.to($('.count'), 4, {opacity:0,delay:1});
+				 	console.log('animationa loaded');
+					 	setTimeout(function(){
+							// $('.bgImg').animate({ opacity: 1 }, { duration: 2000 });
+							TweenMax.to($('.loading-container'), 0.5, {opacity:0});
+							TweenMax.set(".loading-container", {display:"none"});
+							
+						}, 1000);
+						
+				 }else{
+				 }
+			}
+
+
+			var manager = new THREE.LoadingManager();
+			// manager.onStart = function ( ) {
+
+			// 	// TweenMax.staggerFrom(".stroke1", 2, {drawSVG:0}, 0.1);
+			
+
+			// };
+
+			manager.onProgress = function (item, loaded, total) {
+				var progress = (loaded / total * 100).toFixed(0);
+				progressCounter(progress);
+				
+
+				// var percent = Math.round(callback.loaded / callback.total) * 100;
+				 console.log('progress',progress);
+
+			};
+			manager.onLoad = function () {
+			    	allItemsLoaded();
+			};
+			manager.onError = function () {
+			};
+			function allItemsLoaded() {
+intro();
+			    // 
+			    
+			}
+
+//////////////////// END Loading Animation And Counter//////////////////////
+
+
 			init();
-			render();
+			animate();
+			mmm = group.getObjectByName( "newBag", true );
+
+			console.log('testtest', mmm);
+			
 			function init() {
-				var container = document.createElement( 'div' );
+
+				container = document.createElement( 'div' );
 				document.body.appendChild( container );
-				var canvasWidth = window.innerWidth;
-				var canvasHeight = window.innerHeight;
-				// CAMERA
-				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 80000 );
-				camera.position.set( -600, 550, 1300 );
-				// LIGHTS
-				ambientLight = new THREE.AmbientLight( 0x333333 );	// 0.2
-				light = new THREE.DirectionalLight( 0xFFFFFF, 1.0 );
-				// direction is set in GUI
-				// RENDERER
-				renderer = new THREE.WebGLRenderer( { antialias: true } );
+
+				camera = new THREE.PerspectiveCamera( 1, window.innerWidth / window.innerHeight, 1, 2000 );
+				camera.position.set( -220, 0, 3000 );
+				                 	//camera.position.set( -600, 550, 1300 );
+
+				camera.target = new THREE.Vector3();
+				group = new THREE.Group();
+				raycaster = new THREE.Raycaster();
+				mouse = new THREE.Vector3();
+				scene = new THREE.Scene();
+
+				scene.selectable = [];
+
+
+				renderer = new THREE.WebGLRenderer({alpha:true, antialias: true}); // antialias: false
+
 				renderer.setPixelRatio( window.devicePixelRatio );
-				renderer.setSize( canvasWidth, canvasHeight );
+				renderer.setSize( window.innerWidth, window.innerHeight);
 				renderer.gammaInput = true;
 				renderer.gammaOutput = true;
 				container.appendChild( renderer.domElement );
-				// EVENTS
-				window.addEventListener( 'resize', onWindowResize, false );
-				// CONTROLS
-				cameraControls = new THREE.OrbitControls( camera, renderer.domElement );
-				cameraControls.addEventListener( 'change', render );
-				// TEXTURE MAP
-				var textureMap = new THREE.TextureLoader().load( 'textures/UV_Grid_Sm.jpg' );
-				textureMap.wrapS = textureMap.wrapT = THREE.RepeatWrapping;
-				textureMap.anisotropy = 16;
-				// REFLECTION MAP
-				var path = "textures/cube/skybox/";
-				var urls = [
-					path + "px.jpg", path + "nx.jpg",
-					path + "py.jpg", path + "ny.jpg",
-					path + "pz.jpg", path + "nz.jpg"
-				];
-				textureCube = new THREE.CubeTextureLoader().load( urls );
-				// MATERIALS
-				var materialColor = new THREE.Color();
-				materialColor.setRGB( 1.0, 1.0, 1.0 );
-				wireMaterial = new THREE.MeshBasicMaterial( { color: 0xFFFFFF, wireframe: true } ) ;
-				flatMaterial = new THREE.MeshPhongMaterial( { color: materialColor, specular: 0x000000, flatShading: true, side: THREE.DoubleSide } );
-				gouraudMaterial = new THREE.MeshLambertMaterial( { color: materialColor, side: THREE.DoubleSide } );
-				phongMaterial = new THREE.MeshPhongMaterial( { color: materialColor, side: THREE.DoubleSide } );
-				texturedMaterial = new THREE.MeshPhongMaterial( { color: materialColor, map: textureMap, side: THREE.DoubleSide } );
-				reflectiveMaterial = new THREE.MeshPhongMaterial( { color: materialColor, envMap: textureCube, side: THREE.DoubleSide } );
-				// scene itself
-				scene = new THREE.Scene();
-				scene.background = new THREE.Color( 0xAAAAAA );
-				scene.add( ambientLight );
-				scene.add( light );
-				
-			}
-			var newBag = new THREE.OBJLoader();
-				newBag.load( 'test.obj', function ( object ) {
 
-					object.traverse( function ( child ) {
-	                             	if ( child instanceof THREE.Mesh ) {
-							child.material = bagMaterial;
-							child.material.needsUpdate = true;
-                                 	}
-                             });
+				var controls = new THREE.OrbitControls( camera, renderer.domElement );
+					controls.rotateSpeed = .7;
+					controls.enableZoom = false;
+					controls.enablePan = false;
+
 				
-					object.rotation.x = 3.14;
+
+				//////////////////////////////////////////////////////////////////////////////////////// scene
+
+
+				
+				// var newBag = new THREE.MTLLoader(manager);
+				// newBag.load( "quilted.mtl", function( materials ) {
+				//     materials.preload();
+				//     var objLoader = new THREE.OBJLoader(manager);
+				//     objLoader.setMaterials( materials );
+				//     objLoader.load("1scene.obj", function ( object ) {
+				      
+				// 		scene.add( object );
+				//     });
+				// });
+				
+
+
+				// var onError = function ( xhr ) { };
+
+				// THREE.Loader.Handlers.add( /\.dds$/i, new THREE.DDSLoader() );
+
+				// var mtlLoader = new THREE.MTLLoader(manager);
+				// mtlLoader.setPath( 'male02/' );
+				// mtlLoader.load( 'male02_dds.mtl', function( materials ) {
+
+				// 	materials.preload();
+
+				// 	var objLoader = new THREE.OBJLoader(manager);
+				// 	objLoader.setMaterials( materials );
+				// 	objLoader.setPath( 'male02/' );
+				// 	objLoader.load( 'new1.obj', function ( object ) {
+
+					
+				// 		scene.add( object );
+
+				// 	} );
+
+				// });
+
+				//////////////////////////////////////////////////////////////////////////////// LOAD OBJECTS !!!!!! //////////////////
+				var newBag = new THREE.OBJLoader(manager);
+				newBag.load( 'new1.obj', function ( object ) {
+						object.traverse( function ( child ) {
+		                             	if ( child instanceof THREE.Mesh ) {
+								child.material = bagMaterial;
+								child.material.needsUpdate = true;
+	                                 	}
+	                             });
+				
+					object.rotation.x = 2.92;
 					object.position.x = 0;
 
-					object.rotation.y = 0;
+					object.rotation.y = -3.10;
 					object.position.y = 0;
 
-					object.rotation.z = 0;
+					object.rotation.z = 3.08;
 					object.position.z = 0;
 
 					object.name = "newBag";
-					scene.add( newBag);
-				});
-			// EVENT HANDLERS
-			function onWindowResize() {
-				var canvasWidth = window.innerWidth;
-				var canvasHeight = window.innerHeight;
-				renderer.setSize( canvasWidth, canvasHeight );
-				camera.aspect = canvasWidth / canvasHeight;
-				camera.updateProjectionMatrix();
-				render();
-			}
+					//scene.add( object );
+					group.add( object );
+
 			
+						return object;
+				});
+
+
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+				
+			 	scene.add( group );
+				scene.add(camera);
+				window.scene = scene;
+				/////////////////////////////////////////////// Composer Effects //////////////////////////////////////////////////////////////////////////////////////
+
+				composer = new THREE.EffectComposer( renderer );
+				renderPass = new THREE.RenderPass( scene, camera );
+				composer.addPass( renderPass );
+
+				// outlinePass = new THREE.OutlinePass( new THREE.Vector2(window.innerWidth, window.innerHeight), scene.children[10], camera);
+				// 	// renderer = new THREE.WebGLRenderer( {  alpha:true } );
+				// composer.addPass( outlinePass );
+				// console.log('outlinePass', outlinePass);
+
+				// effectFXAA = new THREE.ShaderPass(THREE.FXAAShader);
+				//  // effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight );
+				// effectFXAA.renderToScreen = true;
+				// composer.addPass( effectFXAA );
+
+				// renderer.setSize( window.innerWidth, window.innerHeight );
+				
+				// window.scene = scene;// need it for three js debug
+
+
+				
+
+
+				animate();
+				window.addEventListener( 'resize', onWindowResize, false );
+		
+			///// restore to original
+				camToSave.position = camera.position.clone();
+				camToSave.rotation = camera.rotation.clone();
+
+				document.addEventListener( 'click', onCoverClick, false );
+
+								
+
+								
+
+			} // end init
+
+			function addSelectedObjects(object) {
+					selectedObjects.push(object);
+			}
+				function intro(){
+				
+		 			mainObj = group.getObjectByName( "newBag", true );
+						console.log('mainObj',mainObj);
+						introTl.to(camera.position, 2,{ x:-600,y:550,z:1300, ease: Back.easeOut.config(1.7)})
+							// .add(frontTop)
+							// .to(mainObj.rotation, 1, {y:3.16,ease: Expo.easeOut,delay:1})
+							// .to(mainObj.scale, 1, {x:1.5,y:1.5,z:1.5,ease: Bounce.easeOut})
+							// .add(frontBottom)
+							// // .add(reset,1.2)
+							// .to(mainObj.rotation, 0.5, {y:-0.52, delay:1.2,ease: Power4.easeOut})
+							// .add(straps)
+							// .to(mainObj.scale, 1, {x:1,y:1,z:1,ease: Bounce.easeOut,delay:1.5})
+							// .to(mainObj.rotation, 1, {y:-3.56,ease: Expo.easeOut,delay:1})
+
+
+					var theta = -2;
+			    	var myease = Power2.easeInOut;
+					var x = camToSave.position.x;
+					var z = camToSave.position.z;
+                  	var moveX = x * Math.cos(theta) - z * Math.sin(theta);
+                 	var moveZ = z * Math.cos(theta) + x * Math.sin(theta);
+
+				}
+				function reset(){
+						for (var i = 0; i < mainObj.children.length; i++) {
+							mainObj.children[i].material = theMaterial;
+							console.log('reset');
+						}
+						
+				}
+    				
+    	
+				function frontTop(){
+					for (var i = 0; i < mainObj.children.length; i++) {
+								mainObj.children[i].material = theMaterial;
+							if (mainObj.children[i].name == 'frnt_1') {
+								mainObj.children[i].material = selected;
+								TweenMax.to(mainObj.children[i].material.color, 0.4, {b:255, g:255,r:255, yoyo:true, repeat:1});
+								TweenMax.to(mainObj.children[i].material.color, 0.4, {ease:Power4.easeInOut,b:0, g:0,r:0});
+
+							}
+					}	
+					
+				}
+				function frontBottom(){
+					for (var i = 0; i < mainObj.children.length; i++) {
+								mainObj.children[i].material = theMaterial;
+							if (mainObj.children[i].name == 'object_36') {
+
+								mainObj.children[i].material = selected;
+								TweenMax.to(mainObj.children[i].material.color, 0.1, {b:255, g:255,r:255});
+								TweenMax.to(mainObj.children[i].material.color, 0.1, {ease:Power4.easeInOut,b:0, g:0,r:0,delay:0.2});
+								
+								
+							}
+					}	
+					
+				}
+				function straps(){
+
+					for (var i = 0; i < mainObj.children.length; i++) {
+							if (mainObj.children[i].name == 'object_67' ) {
+								TweenMax.to(mainObj.children[i].position, 0.5, {z:-6.32,yoyo:true, ease: Power4.easeOut,repeat:1,delay:0.4});
+							}else if ( mainObj.children[i].name == 'object_66') {
+								TweenMax.to(mainObj.children[i].position, 0.5, {z:-6.32,yoyo:true, ease: Power4.easeOut,repeat:1,delay:0.4});
+							}
+					}	
+					
+				}
+
+				function setUpSelectableState(event) {
+					var canvas = document.getElementById("info");
+	    			var rect = canvas.getBoundingClientRect();
+					mouse.x = ( (event.clientX - rect.left) / renderer.domElement.clientWidth ) * 2 - 1;
+					mouse.y = - ( (event.clientY - rect.top) / renderer.domElement.clientHeight ) * 2 + 1;
+					mouse.z = .5;
+					raycaster.setFromCamera( mouse, camera );
+				}
+
+
+				function attachButtonMaterials( materials, faceMaterials, material_indices, car ) {
+					for( var i = 0; i < materials.length; i ++ ) {
+
+						$( button_name( car, i ) ).counter = i;
+						$( button_name( car, i ) ).addEventListener( 'click', function() {
+
+							for ( var j = 0; j < material_indices.length; j ++ ) {
+
+								faceMaterials[ material_indices [ j ] ] = materials[ this.counter ][ 1 ];
+
+							}
+
+						}, false );
+
+					}
+
+				}
+				function colorSelections(obj){
+					
+					var buttons, i, src = "";
+					var mlib = {
+						Orange: {color: 'FF4500'},
+						Blue: 	{ color: '001133'},
+						Red: 		 {color: '660000'  },
+						Black: 	 { color: '000000'  }, 
+						White:	 { color: 'ffffff' },
+						Carmine:  { color: '770000' },
+						Gold: { color: 'aa9944' },
+						Bronze :{ color: '150505'  },
+						Chrome: { color: 'ffffff'  },
+						};
+						
+						// for( var i = 0; i < mlib.length; i ++ ) {
+
+						// }
+
+						console.log('colcor click',mlib);
+
+						for (var i in mlib) {
+						  if (mlib.hasOwnProperty(i)) {
+						    src += '<button id="' + i + '">' + i + '</button> ';
+						   
+						    var colorBtn = document.getElementById(i);
+
+						     $(document).on('click','#'+i,function(){
+						     	
+						     	obj.material = mlib[i];
+
+						     	console.log('colcor click',mlib[i]);
+						     })
+
+						 //    $(colorBtn).addEventListener( 'click', function() {
+						 //    	console.log('colcor click');
+							// 	// for ( var j = 0; j < material_indices.length; j ++ ) {
+							// 	// 	faceMaterials[ material_indices [ j ] ] = materials[ this.counter ][ 1 ];
+							// 	// }
+							// }, false );
+						  }
+						}
+						$(document).on('click','.close',function(){
+							closePop();
+						});
+						var btnLocation = document.getElementById('color');
+						buttons = document.createElement( "div" );
+						buttons.innerHTML = src;
+						btnLocation.appendChild(buttons);
+						return buttons;
+
+				}
+
+
+				function colorPop (){
+				
+					// var indigoColor = #4B0082;
+					 TweenLite
+					      .fromTo($('.modal__body'), .2, {
+					        opacity: 0
+					      }, {
+					        opacity: 1,
+					        delay: 0,
+					        ease: Power1.easeOut,
+					        force3D: true
+					      })
+
+					    TweenLite
+					      .fromTo($('.modal__body'), .3, {
+					        translateY: 0,
+					        rotationX: -40,
+					        y: '50%', 
+					        scale: .7,
+					        transformOrigin: "50% 150px -100px"
+					      }, {
+					        translateY: 0,
+					        rotationX: 0,
+					        y: '0%',
+					        ease: Power3.easeInOut,
+					        scale: 1
+					      })
+
+					    TweenLite
+					      .fromTo($('.modal__heading'), .3, {
+					        translateY: 0,
+					        rotationX: -40,
+					        y: '0%', 
+					        scale: .7,
+					        opacity: 0,
+					        transformOrigin: "50% 150px -100px"
+					      }, {
+					        translateY: 0,
+					        rotationX: 0,
+					        y: '-150%',
+					        ease: Back.easeOut.config(1.5),
+					        scale: 1,
+					        delay: .15,
+					        opacity: 1
+					      })
+					
+    
+
+				}
+				function closePop(){
+					$( "#color" ).empty();
+							  	TweenLite
+							      .fromTo($('.modal__body'), .2, {
+							        opacity: 1
+							      }, {
+							        opacity: 0,
+							        delay: .15,
+							        ease: Power1.easeInOut
+							      })
+
+							    TweenLite
+							      .fromTo($('.modal__body'), .3, {
+							        translateY: 0,
+							        rotationX: 0,
+							        y: '0%', 
+							        scale: 1,
+							        transformOrigin: "50% 150px -100px"
+							      }, {
+							        translateY: 0,
+							        rotationX: -40,
+							        y: '50%',
+							        ease: Power3.easeInOut,
+							        scale: .7,
+							        delay: .15,
+							      })
+
+							    TweenLite
+							      .fromTo($('.modal__heading'), .3, {
+							        rotationX: 0,
+							        y: '-150%', 
+							        scale: 1,
+							        opacity: 1,
+							        transformOrigin: "50% 150px -100px"
+							      }, {
+							        rotationX: -40,
+							        y: '0%',
+							        ease: Back.easeIn.config(1.75),
+							        scale: .7,
+							        opacity: 0
+							      })
+				       
+
+				  }
+
+				function onCoverClick (event){
+									
+
+						event.preventDefault();
+						setUpSelectableState(event);
+	
+						var intersects = raycaster.intersectObjects(scene.children, true);
+						if ( intersects.length > 0) {
+								var objName = intersects[0].object.parent.name;
+								selectedObject = intersects[0].object;
+
+								if(selectedObject.name == 'frnt_1') {
+
+											if ( coverClciked == false) {
+											
+													coverClciked = true;
+													colorPop();
+												
+													selectedObject.material = selected;
+													TweenMax.to(selectedObject.material.color, 1, {b:22, g:0,r:0, ease:Power2.easeInOut}, "-=1");
+													console.log('coverClciked',coverClciked);
+													var obj = selectedObject;
+													colorSelections(obj);
+
+
+											}
+											// else{
+											// 	 	closePop();
+											// 	 	$( "#color" ).empty();
+											// 	 	console.log('else1');
+											// 		coverClciked = false;
+											// 		selectedObject.material = theMaterial;
+											// 		TweenMax.to(selectedObject.material.color, 1, {b:0, g:0,r:0, ease:Power2.easeInOut}, "-=1");
+													
+											// }
+
+										
+										
+								}else{
+									console.log('coverClciked',coverClciked);
+										// closePop();
+									 // 	$( "#color" ).empty();
+									 	console.log('else3');
+										// coverClciked = false;
+										// selectedObject.material = theMaterial;
+										// TweenMax.to(selectedObject.material.color, 1, {b:0, g:0,r:0, ease:Power2.easeInOut}, "-=1");
+								}
+
+						}else{
+							coverClciked = false;
+								
+							
+										coverClciked = false;
+										console.log('else2');
+										// TweenMax.to(selectedObject.position, 1, {x:0, y:0,z:0, ease:Power2.easeInOut}, "-=1");
+										// selectedObject.material = theMaterial;
+										// 		TweenMax.to(selectedObject.material.color, 1, {b:0, g:0,r:0, ease:Power2.easeInOut}, "-=1");
+						}
+
+
+					}
+
+				function onMouseMove( event ) {
+						console.log(raycaster);
+						event.preventDefault();
+
+						setUpSelectableState(event);
+						var intersects = raycaster.intersectObjects(scene.selectable, true );
+
+						selectedObjects = [];
+						// setUpSelectableState();
+						// var intersects = raycaster.intersectObjects(scene.selectable, true );
+						// selectedObjects = [];
+						console.log(selectedObjects);
+						if ( intersects.length > 0 ) {
+							selectedObject = intersects[0].object;
+							// var hotspotTest = selectedObject.parent.name === "hotspots";
+							console.log("selectedObject.parent.name"+selectedObject.parent.name);
+							// var hotSpotName = selectedObject.name;
+							// if(selectedObject.parent) {
+							// 	var objName = selectedObject.parent.name;
+							// } else {
+							// 	var objName = "nothing";
+							// }
+							
+
+						}
+			
+				} // mousemove
+
+			function updateCamera() {
+		    		camera.updateProjectionMatrix();
+		    		camera.lookAt(scene.position);
+		    	}
+
+			function onWindowResize() {
+
+				windowHalfX = window.innerWidth / 2;
+				windowHalfY = window.innerHeight / 2;
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+		
+
 			//
-			function render() {
-				if ( effectController.newTess !== tess ||
-					effectController.bottom !== bBottom ||
-					effectController.lid !== bLid ||
-					effectController.body !== bBody ||
-					effectController.fitLid !== bFitLid ||
-					effectController.nonblinn !== bNonBlinn ||
-					effectController.newShading !== shading )
-				{
-					tess = effectController.newTess;
-					bBottom = effectController.bottom;
-					bLid = effectController.lid;
-					bBody = effectController.body;
-					bFitLid = effectController.fitLid;
-					bNonBlinn = effectController.nonblinn;
-					shading = effectController.newShading;
-					createNewTeapot();
-				}
-				// We're a bit lazy here. We could check to see if any material attributes changed and update
-				// only if they have. But, these calls are cheap enough and this is just a demo.
-				phongMaterial.shininess = effectController.shininess;
-				texturedMaterial.shininess = effectController.shininess;
-				diffuseColor.setHSL( effectController.hue, effectController.saturation, effectController.lightness );
-				if ( effectController.metallic )
-				{
-					// make colors match to give a more metallic look
-					specularColor.copy( diffuseColor );
-				}
-				else
-				{
-					// more of a plastic look
-					specularColor.setRGB( 1, 1, 1 );
-				}
-				diffuseColor.multiplyScalar( effectController.kd );
-				flatMaterial.color.copy( diffuseColor );
-				gouraudMaterial.color.copy( diffuseColor );
-				phongMaterial.color.copy( diffuseColor );
-				texturedMaterial.color.copy( diffuseColor );
-				specularColor.multiplyScalar( effectController.ks );
-				phongMaterial.specular.copy( specularColor );
-				texturedMaterial.specular.copy( specularColor );
-				// Ambient's actually controlled by the light for this demo
-				ambientLight.color.setHSL( effectController.hue, effectController.saturation, effectController.lightness * effectController.ka );
-				light.position.set( effectController.lx, effectController.ly, effectController.lz );
-				light.color.setHSL( effectController.lhue, effectController.lsaturation, effectController.llightness );
-				// skybox is rendered separately, so that it is always behind the teapot.
-				if ( shading === "reflective" ) {
-					scene.background = textureCube;
-				} else {
-					scene.background = null;
-				}
-				renderer.render( scene, camera );
+
+			
+			function animate() {
+
+	//			controls.target.set(-7, 0, 0);
+
+				render();
+				requestId = requestAnimationFrame( animate );
+				
+
 			}
-			// Whenever the teapot changes, the scene is rebuilt from scratch (not much to it).
-			function createNewTeapot() {
-				if ( teapot !== undefined ) {
-					teapot.geometry.dispose();
-					scene.remove( teapot );
-				}
-				var teapotGeometry = new THREE.TeapotBufferGeometry( teapotSize,
-					tess,
-					effectController.bottom,
-					effectController.lid,
-					effectController.body,
-					effectController.fitLid,
-					! effectController.nonblinn );
-				teapot = new THREE.Mesh(
-					teapotGeometry,
-					shading === "wireframe" ? wireMaterial : (
-					shading === "flat" ? flatMaterial : (
-					shading === "smooth" ? gouraudMaterial : (
-					shading === "glossy" ? phongMaterial : (
-					shading === "textured" ? texturedMaterial : reflectiveMaterial ) ) ) ) );	// if no match, pick Phong
-				scene.add( teapot );
-			}
+
+				function render() {
+					
+                		camera.lookAt( scene.position );
+                		camera.updateMatrixWorld();
+          			renderer.render( scene, camera );
+
+        		}
+
+        		///////////////////////modal
+
+
+
+
+
+  TweenLite.set($('.modal'), {
+    perspective: 400
+  });
+  
+   TweenLite.set($('.modal__body'), {
+     transformStyle:"preserve-3d",
+     rotateX:-60,
+     backfaceVisibility:"hidden"
+  });
+ 
+  
+  
+
+
 		</script>
 
 	</body>
