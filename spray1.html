@@ -58,7 +58,6 @@
 			#info a, .button { color: #f00; font-weight: bold; text-decoration: underline; cursor: pointer }
 
 			.modal {
-			  height: 100%;
 			  width: 100%;
 			  position: absolute;
 			}
@@ -162,17 +161,21 @@ box-shadow: inset 1px 0px 11px 1px rgba(0,0,0,0.75);
 				</div>
 			</div>	
 			<div id="buttons_materials" class="bwrap"></div>
-			<div class="modal">
-			  <h1 class="modal__heading">Heading</h1>
-			  <div class="modal__body">
-			  	<div class='close'>Close</div>
-			    <h1>Heading</h1>
-			    <p>Test Content here</p>
-			    <div id="color"></div>
-			  </div>
-			</div>
 		<div id="info">
 		</div>
+		<div class="modal">
+		  <h1 class="modal__heading">Heading</h1>
+		  <div class="modal__body">
+		  	<div class='close'>Close</div>
+		    <h1>Heading</h1>
+		    <p>Test Content here</p>
+		    <div id="color"></div>
+		    <button id="prev">Previous</button>
+<button id="next">Next</button>
+		  </div>
+		</div>
+
+		
 
 		<script
   src="https://code.jquery.com/jquery-3.2.1.min.js"
@@ -216,17 +219,22 @@ box-shadow: inset 1px 0px 11px 1px rgba(0,0,0,0.75);
 			camToSave = {},
 			selectedObjects = [],
 			tl = new TimelineLite({repeat:-1}),
+			master = new TimelineMax({paused: true}),
 			introTl = new TimelineMax(),
 			coverClciked = false,
 			scaleAmount = 180;
 
 			
 			var mouseX = 0, mouseY = 0;
-			var bagBmap = new THREE.TextureLoader(manager).load('/Textures/GREEN.png');//// test texture
-			bagBmap.wrapS = THREE.RepeatWrapping;
-			bagBmap.wrapT = THREE.RepeatWrapping;
-			bagBmap.repeat.x = 2;
-			bagBmap.repeat.y = 2;
+			// var bagBmap = new THREE.TextureLoader(manager).load('crackle.jpg');//// test texture
+
+		
+
+
+			// bagBmap.wrapS = THREE.RepeatWrapping;
+			// bagBmap.wrapT = THREE.RepeatWrapping;
+			// bagBmap.repeat.x = 2;
+			// bagBmap.repeat.y = 2;
 
 			var theMaterial = new THREE.MeshPhongMaterial({
 				ambient: 0x050505,
@@ -241,8 +249,8 @@ box-shadow: inset 1px 0px 11px 1px rgba(0,0,0,0.75);
 			//	emissive   :  new THREE.Color("rgb(7,3,5)"),
 				specular   :  new THREE.TextureLoader(manager).load('/threejs-assets/textures/specular.png'),
 				shininess  :  8,
-				bumpMap    :  bagBmap,
-				bumpScale  :  0.2,
+				// bumpMap    :  bagBmap,
+				// bumpScale  :  0.2,
 				transparent : true,
 			});
 			var newmaterial = new THREE.MeshLambertMaterial({color: 0x660000});
@@ -349,17 +357,11 @@ box-shadow: inset 1px 0px 11px 1px rgba(0,0,0,0.75);
 			//	emissive   :  new THREE.Color("rgb(7,3,5)"),
 				shininess  :  8,
 				name : 'bagMaterial',
-				bumpMap    :  bagBmap,
-				bumpScale  :  0.2,
+				// bumpMap    :  bagBmap,
+				// bumpScale  :  0.2,
 				transparent : true,
 			});
-			var Orange = new THREE.LineBasicMaterial( {
-				color: 0xFF4500,
-				 name : 'Orange',
-				linewidth: 1,
-				linecap: 'round', 
-				linejoin:  'round'
-			} );
+		
 
 			/////////////////// Loading Animation And Counter//////////////////////
 
@@ -505,12 +507,27 @@ intro();
 				// });
 
 				//////////////////////////////////////////////////////////////////////////////// LOAD OBJECTS !!!!!! //////////////////
+				var texture = new THREE.Texture();
+				var newTexture = new THREE.ImageLoader(manager).load(
+					'small.jpg',
+				function ( image ) {
+					texture.image = image;
+					texture.needsUpdate = true;
+					});
+
+
+
+
+		
 				var newBag = new THREE.OBJLoader(manager);
 				newBag.load( 'new1.obj', function ( object ) {
 						object.traverse( function ( child ) {
 		                             	if ( child instanceof THREE.Mesh ) {
-								child.material = bagMaterial;
+		                       	child.material.map = texture;
+								// child.material = bagMaterial;
+
 								child.material.needsUpdate = true;
+								console.log('	child.material.map = texture;', child.material);
 	                                 	}
 	                             });
 				
@@ -545,17 +562,17 @@ intro();
 				renderPass = new THREE.RenderPass( scene, camera );
 				composer.addPass( renderPass );
 
-				// outlinePass = new THREE.OutlinePass( new THREE.Vector2(window.innerWidth, window.innerHeight), scene.children[10], camera);
-				// 	// renderer = new THREE.WebGLRenderer( {  alpha:true } );
-				// composer.addPass( outlinePass );
-				// console.log('outlinePass', outlinePass);
+				outlinePass = new THREE.OutlinePass( new THREE.Vector2(window.innerWidth, window.innerHeight), scene.children[10], camera);
+					// renderer = new THREE.WebGLRenderer( {  alpha:true } );
+				composer.addPass( outlinePass );
+				console.log('outlinePass', outlinePass);
 
-				// effectFXAA = new THREE.ShaderPass(THREE.FXAAShader);
-				//  // effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight );
-				// effectFXAA.renderToScreen = true;
-				// composer.addPass( effectFXAA );
+				effectFXAA = new THREE.ShaderPass(THREE.FXAAShader);
+				 // effectFXAA.uniforms['resolution'].value.set(1 / window.innerWidth, 1 / window.innerHeight );
+				effectFXAA.renderToScreen = true;
+				composer.addPass( effectFXAA );
 
-				// renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.setSize( window.innerWidth, window.innerHeight );
 				
 				// window.scene = scene;// need it for three js debug
 
@@ -582,19 +599,24 @@ intro();
 					selectedObjects.push(object);
 			}
 				function intro(){
-				
-		 			mainObj = group.getObjectByName( "newBag", true );
-						console.log('mainObj',mainObj);
+						mainObj = group.getObjectByName( "newBag", true );
+
+		 			
+
 						introTl.to(camera.position, 2,{ x:-600,y:550,z:1300, ease: Back.easeOut.config(1.7)})
-							// .add(frontTop)
-							// .to(mainObj.rotation, 1, {y:3.16,ease: Expo.easeOut,delay:1})
-							// .to(mainObj.scale, 1, {x:1.5,y:1.5,z:1.5,ease: Bounce.easeOut})
+						
+							 // .add(frontTop)
+							 .addPause("scene1")
+							 .add("scene1-start", "+=.1")
+						 // .to(mainObj.rotation, 1, {y:3.16,ease: Expo.easeOut,delay:1})
+							.to(mainObj.scale, 1, {x:1.5,y:1.5,z:1.5,ease: Bounce.easeOut})
 							// .add(frontBottom)
 							// // .add(reset,1.2)
 							// .to(mainObj.rotation, 0.5, {y:-0.52, delay:1.2,ease: Power4.easeOut})
 							// .add(straps)
 							// .to(mainObj.scale, 1, {x:1,y:1,z:1,ease: Bounce.easeOut,delay:1.5})
 							// .to(mainObj.rotation, 1, {y:-3.56,ease: Expo.easeOut,delay:1})
+							// .add(render);
 
 
 					var theta = -2;
@@ -604,6 +626,29 @@ intro();
                   	var moveX = x * Math.cos(theta) - z * Math.sin(theta);
                  	var moveZ = z * Math.cos(theta) + x * Math.sin(theta);
 
+				}
+
+				function getFirst() {
+					console.log('first');
+								mainObj = group.getObjectByName( "newBag", true );
+
+				  var mainLine = new TimelineMax();
+				  mainLine.to(mainObj.scale, 1, {x:1.5,y:1.5,z:1.5,ease: Bounce.easeOut})
+				  return mainLine;
+				}
+				function getSecond() {
+										console.log('second');
+mainObj = group.getObjectByName( "newBag", true );
+				  var mainLine = new TimelineMax();
+				  mainLine.to(mainObj.rotation, 0.5, {y:-0.52, delay:1.2,ease: Power4.easeOut})
+				  return mainLine;
+				}
+
+				function getThird() {
+					mainObj = group.getObjectByName( "newBag", true );
+				  var mainLine = new TimelineMax();
+				  mainLine.to(mainObj.scale, 1, {x:1,y:1,z:1,ease: Bounce.easeOut,delay:1.5})
+				  return mainLine;
 				}
 				function reset(){
 						for (var i = 0; i < mainObj.children.length; i++) {
@@ -616,7 +661,7 @@ intro();
     	
 				function frontTop(){
 					for (var i = 0; i < mainObj.children.length; i++) {
-								mainObj.children[i].material = theMaterial;
+								// mainObj.children[i].material = theMaterial;
 							if (mainObj.children[i].name == 'frnt_1') {
 								mainObj.children[i].material = selected;
 								TweenMax.to(mainObj.children[i].material.color, 0.4, {b:255, g:255,r:255, yoyo:true, repeat:1});
@@ -628,7 +673,7 @@ intro();
 				}
 				function frontBottom(){
 					for (var i = 0; i < mainObj.children.length; i++) {
-								mainObj.children[i].material = theMaterial;
+								// mainObj.children[i].material = theMaterial;
 							if (mainObj.children[i].name == 'object_36') {
 
 								mainObj.children[i].material = selected;
@@ -683,63 +728,69 @@ intro();
 					
 					var buttons, i, src = "";
 					var mlib = {
-						"Orange": 	new THREE.LineBasicMaterial( {color: 0xFF4500} ),
-						"Blue": 	new THREE.MeshLambertMaterial( { color: 0x001133} ),
-						"Red": 		new THREE.MeshLambertMaterial( {color: 0x660000  } ),
-						"Black": 	new THREE.MeshLambertMaterial( { color: 0x000000  } ),
-						"White":	new THREE.MeshLambertMaterial( { color: 0xffffff } ),
-
-						"Carmine": 	new THREE.MeshPhongMaterial( { color: 0x770000   } ),
-						"Gold": 	new THREE.MeshPhongMaterial( { color: 0xaa9944 } ),
-						"Bronze":	new THREE.MeshPhongMaterial( { color: 0x150505  } ),
-						"Chrome": 	new THREE.MeshPhongMaterial( { color: 0xffffff  } ),
+						"Orange": 	new THREE.MeshStandardMaterial( {name:"Orange", color: 0xFF4500} ),
+						"Blue": 	new THREE.MeshLambertMaterial( {name:"Blue", color: 0x001133} ),
+						"Red": 		new THREE.MeshLambertMaterial( {name:"Red",color: 0x660000  } ),
+						"Black": 	new THREE.MeshLambertMaterial( { name:"Black",color: 0x000000  } ),
+						"White":	new THREE.MeshLambertMaterial( {name:"White", color: 0xffffff } ),
+						"Carmine": 	new THREE.MeshPhongMaterial( {name:"Carmine", color: 0x770000   } ),
+						"Gold": 	new THREE.MeshPhongMaterial( {name:"Gold", color: 0xaa9944 } ),
+						"Bronze":	new THREE.MeshPhongMaterial( {name:"Bronze", color: 0x150505  } ),
+						"Chrome": 	new THREE.MeshPhongMaterial( {name:"Chrome", color: 0xffffff  } ),
 						};
 						
-						// for( var i = 0; i < mlib.length; i ++ ) {
-
-						// }
-
 						
-
-						for (var i in mlib) {
-						  if (mlib.hasOwnProperty(i)) {
-						    src += '<button id="' + i + '">' + i + '</button> ';
-						    console.log('mlib',i);
-						    $('body').on('click','#'+i,function(){
-						    	var clickedbtn = $(this).attr('id');
-						  //    	for ( var j = 0; j == i; j ++ ) {
-								// 	faceMaterials[ material_indices [ j ] ] = materials[ this.counter ][ 1 ];
-								// }
-								for (clickedbtn in i) {
-								    if (i.hasOwnProperty(clickedbtn)) {
-								       console.log('bingo',clickedbtn);
-								       // obj.material.color = clickedbtn.color;
-								    }
-								}
-								
-
-						     })
-
-								 //    $(colorBtn).addEventListener( 'click', function() {
-								 //    	console.log('colcor click');
-									// 	// for ( var j = 0; j < material_indices.length; j ++ ) {
-									// 	// 	faceMaterials[ material_indices [ j ] ] = materials[ this.counter ][ 1 ];
-									// 	// }
-									// }, false );
-						  }
-						 
+						var keys = Object.keys(mlib);
+						for (var i = 0, len = keys.length; i < len; i++) {
+							src += '<button id="' + mlib[keys[i]].name + '">' + mlib[keys[i]].name + '</button> ';
+							var obName = mlib[keys[i]];
+							btnClick(obj, obName);
 						}
+
 						$(document).on('click','.close',function(){
 							closePop();
 						});
+
 						var btnLocation = document.getElementById('color');
 						buttons = document.createElement( "div" );
 						buttons.innerHTML = src;
 						btnLocation.appendChild(buttons);
 						return buttons;
-
+						
 				}
 
+
+				var last = 1;
+				master
+				  .add(getFirst(), "scene1")
+				  .addPause("+=0", function() { last = 1})
+				  .add(getSecond(), "scene2")
+				  .addPause("+=0", function() { last = 1})
+				  .add(getThird(), "scene3")
+				  .addPause("+=0", function() { last = 2})
+
+				document.getElementById("next").onclick = function(){master.play()};
+				document.getElementById("prev").onclick = function(){
+				  // master.reverse()
+				  master.play("scene" + last);
+				};
+
+
+
+
+				function btnClick(obj, obName){
+					console.log('afterClick',obName);
+					 $('body').on('click','#'+obName.name,function(){
+					   	 var clickedbtn = $(this).attr('id');
+					   	if (clickedbtn == obName.name) {
+					   		console.log('result', );
+					   		obj.material = obName;
+					   	};
+					});
+
+					
+
+				}
 
 				function colorPop (){
 				
@@ -852,7 +903,7 @@ intro();
 											
 													coverClciked = true;
 													colorPop();
-												
+													// introTl.seek('scene1-start').play();
 													selectedObject.material = selected;
 													TweenMax.to(selectedObject.material.color, 1, {b:22, g:0,r:0, ease:Power2.easeInOut}, "-=1");
 													console.log('thats it');
